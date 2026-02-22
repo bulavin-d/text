@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN - LYRIC LEFT</title>
+    <title>BULAVIN - LYRIC MOBILE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
         body {
             background: #000;
@@ -15,69 +22,77 @@
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
-            align-items: center; /* Центровка по вертикали */
-            justify-content: flex-start; /* Прижимаем к левому краю */
+            align-items: center; 
+            justify-content: center;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             cursor: none;
-            padding-left: 10%; /* Отступ слева, чтобы текст не лип к краю экрана */
+            /* Общая перспектива для эффекта наклона */
+            perspective: 1500px;
         }
 
         #lyric-box {
             width: 85%;
+            max-width: 400px; /* Ограничение под ширину телефона */
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Расстояние между строками */
-            perspective: 1000px;
+            gap: 12px;
+            /* Наклон всей коробки с текстом внутрь */
+            transform: rotateY(-15deg) rotateX(5deg);
+            text-align: left;
         }
 
         .line {
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start; /* Слова в строке тоже слева */
-            gap: 12px;
+            justify-content: flex-start;
+            gap: 8px;
         }
 
         .word {
-            font-size: clamp(1.8rem, 6vw, 4rem);
+            /* Уменьшенный размер для мобилок */
+            font-size: clamp(1.4rem, 7vw, 2.2rem);
             font-style: italic;
             text-transform: uppercase;
-            letter-spacing: -2px;
+            letter-spacing: -1px;
             opacity: 0;
-            transform: translateX(-30px) scale(1.1); /* Вылетают чуть слева */
+            /* Вылет из глубины */
+            transform: translateZ(150px) translateX(-20px);
             filter: blur(15px);
-            transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
-            color: #fff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
         }
 
         .word.visible {
             opacity: 1;
-            transform: translateX(0) scale(1);
+            transform: translateZ(0) translateX(0);
             filter: blur(0);
-            animation: glitch 0.2s ease-out;
+            animation: glitch-mobile 0.25s ease-out;
         }
 
-        @keyframes glitch {
-            0% { text-shadow: 3px 0 #ff0000, -3px 0 #00ffff; }
-            100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        @keyframes glitch-mobile {
+            0% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; transform: scale(1.1); }
+            100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); transform: scale(1); }
         }
 
         .hint {
             position: fixed;
-            bottom: 30px;
-            right: 30px; /* Подсказку в угол, чтобы не мешала */
-            font-size: 9px;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 8px;
             letter-spacing: 4px;
-            opacity: 0.1;
+            opacity: 0.15;
             text-transform: uppercase;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
 <div id="lyric-box"></div>
-<div class="hint">SPACE / CLICK</div>
+<div class="hint">TAP TO START</div>
 
 <script>
     const fullText = `Я уже по уши в лапше, открой мне душу киса
@@ -127,10 +142,7 @@
         currentWordIndex = 0;
 
         if (index >= groups.length) {
-            const end = document.createElement('div');
-            end.className = 'line';
-            end.innerHTML = '<span class="word visible">BULAVIN</span>';
-            lyricBox.appendChild(end);
+            lyricBox.innerHTML = '<div class="line"><span class="word visible" style="font-size: 1.5rem">BULAVIN SYSTEM</span></div>';
             return;
         }
 
@@ -159,8 +171,19 @@
         }
     }
 
+    // Обработка клика и тапа
+    window.addEventListener('mousedown', (e) => {
+        // Чтобы не срабатывало дважды на мобилах
+        if (e.pointerType === 'mouse' || !window.ontouchstart) trigger();
+    });
+
+    window.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        trigger();
+    }, { passive: false });
+
+    // Пробел для компа
     window.addEventListener('keydown', e => { if(e.code === 'Space') { e.preventDefault(); trigger(); } });
-    window.addEventListener('click', trigger);
 
     renderGroup(0);
 </script>
