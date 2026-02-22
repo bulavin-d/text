@@ -1,1 +1,184 @@
-# text
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BULAVIN PROMO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Мягкий виньетированный фон для объема */
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            z-index: -1;
+        }
+
+        #lyric-box {
+            width: 90%;
+            max-width: 1000px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .line {
+            min-height: 1.2em;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .word {
+            font-size: clamp(1.5rem, 5vw, 3.5rem);
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            opacity: 0;
+            transform: scale(1.2) translateY(10px);
+            filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            
+            /* Эффект стекла */
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .word.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
+        }
+
+        .hint {
+            position: fixed;
+            bottom: 30px;
+            font-size: 10px;
+            letter-spacing: 3px;
+            opacity: 0.3;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+<div id="lyric-box"></div>
+<div class="hint">PRESS SPACE OR TAP</div>
+
+<script>
+    const fullText = `Я уже по уши в лапше, открой мне душу киса
+Я хочу засыпать спокойно, нахуй мне актрисы
+Я слепо верю в чистое, сам как монета чистая 
+Если захочешь меня ёбнуть, хоть налей игристого 
+Перед тем как меня завалить окутай лаской 
+Расскажи мне сказку, разочаруй в прекрасном 
+Докажи мне, что не ошибался 
+Детка, параноику не больно обжигаться 
+Можешь смеяться, похуй я давно предвидел всё что будет дальше 
+Мозг мне не врет, я знаю, плюс я помню запах фальши 
+Хуйню не скрыть за мэйкап, слезы это не хайлайтер 
+Крутой газглайтинг, это говорить что я газлайтер 
+Напомни мне какой я, я могу ещё хуже 
+Только начни, и вся хуйня с меня выйдет наружу 
+Самый хуевый парень, буду хуевыем мужем 
+Мне так сказали те, кому моя кровь это ужин 
+Ты красивая очень, скажи мне сколько это стоит, е
+Я через чур простой, я не хочу заёбов, е
+Что для других любовь, ты назовешь простоем, е
+Твой бизнес не простой, там ничего святого нет 
+Перед тем как меня завалить окутай лаской 
+Расскажи мне сказку, разочаруй в прекрасном 
+Докажи мне, что не ошибался 
+Детка, параноику не больно обжигаться
+Перед тем как меня завалить окутай лаской 
+Расскажи мне сказку, разочаруй в прекрасном 
+Докажи мне, что не ошибался 
+Детка, параноику не больно обжигаться`;
+
+    const lyricBox = document.getElementById('lyric-box');
+    const linesArr = fullText.split('\n').filter(line => line.trim() !== '');
+    
+    // Группируем по 4 строки
+    let groups = [];
+    for (let i = 0; i < linesArr.length; i += 4) {
+        groups.push(linesArr.slice(i, i + 4));
+    }
+
+    let currentGroupIndex = 0;
+    let currentWordIndex = 0;
+    let allWordsInGroup = [];
+
+    function renderGroup(index) {
+        lyricBox.innerHTML = ''; // Чистим экран
+        allWordsInGroup = [];
+        currentWordIndex = 0;
+
+        if (index >= groups.length) {
+            lyricBox.innerHTML = '<div class="line"><span class="word visible">FINISH</span></div>';
+            return;
+        }
+
+        groups[index].forEach(lineText => {
+            const lineDiv = document.createElement('div');
+            lineDiv.classList.add('line');
+            
+            const words = lineText.trim().split(' ');
+            words.forEach(w => {
+                const span = document.createElement('span');
+                span.classList.add('word');
+                span.innerText = w;
+                lineDiv.appendChild(span);
+                allWordsInGroup.push(span);
+            });
+            lyricBox.appendChild(lineDiv);
+        });
+    }
+
+    function triggerNextWord() {
+        if (currentWordIndex < allWordsInGroup.length) {
+            allWordsInGroup[currentWordIndex].classList.add('visible');
+            currentWordIndex++;
+        } else {
+            currentGroupIndex++;
+            renderGroup(currentGroupIndex);
+        }
+    }
+
+    // Управление
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            triggerNextWord();
+        }
+    });
+
+    window.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        triggerNextWord();
+    });
+
+    // Инициализация первой группы
+    renderGroup(currentGroupIndex);
+</script>
+
+</body>
+</html>
