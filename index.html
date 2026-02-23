@@ -3,33 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN</title>
+    <title>BULAVIN - FULL TEXT</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #000 !important; /* Намертво черный */
+            background: #000 !important;
             color: #fff;
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Текст начинается сверху */
-            padding-top: 15vh; /* Отступ от верха, чтобы красиво было */
+            justify-content: flex-start;
+            padding-top: 12vh; /* Оптимально для записи на фронталку или заднюю */
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         #lyric-box {
-            width: 85%; /* Жесткое ограничение ширины */
+            width: 85%;
             max-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            text-align: left; /* Строго слева */
+            text-align: left;
         }
 
         .line {
@@ -40,21 +40,18 @@
         }
 
         .word {
-            font-size: 26px; /* Фиксированный размер, который влезет в любой айфон */
+            font-size: 24px; /* Чуть уменьшил, чтобы длинные строки точно не рвались */
             font-style: italic;
             text-transform: uppercase;
             letter-spacing: -1px;
             opacity: 0;
-            transition: opacity 0.2s ease; /* Мгновенное появление без мыла */
+            transition: opacity 0.15s ease-in; /* Быстрое и чистое появление */
             color: #fff;
         }
 
         .word.visible {
             opacity: 1;
         }
-
-        /* Чтобы не было лишнего мусора на экране */
-        .hint { display: none; }
     </style>
 </head>
 <body onclick="trigger()">
@@ -97,8 +94,8 @@
 Докажи мне, что не ошибался 
 Детка, параноику не больно обжигаться`;
 
-    // Разбиваем на блоки по пустым строкам
-    const groups = rawText.split(/\n\s*\n/).map(g => g.split('\n').filter(l => l.trim() !== ''));
+    // Разбиваем текст по ПУСТЫМ СТРОКАМ (двойной перенос)
+    const groups = rawText.split(/\n\n|\n \n/).map(g => g.split('\n').filter(l => l.trim() !== ''));
 
     const lyricBox = document.getElementById('lyric-box');
     let groupIdx = 0;
@@ -111,7 +108,9 @@
         wordIdx = 0;
 
         if (groupIdx >= groups.length) {
-            groupIdx = 0; // Зациклим, если текст кончился
+            lyricBox.innerHTML = '<div class="line"><span class="word visible" style="font-size: 14px; opacity: 0.3;">END. TAP TO RESTART</span></div>';
+            groupIdx = -1; // Чтобы по клику началось заново
+            return;
         }
 
         groups[groupIdx].forEach(line => {
@@ -129,6 +128,12 @@
     }
 
     function trigger() {
+        if (groupIdx === -1) {
+            groupIdx = 0;
+            render();
+            return;
+        }
+
         if (wordIdx < currentWords.length) {
             currentWords[wordIdx].classList.add('visible');
             wordIdx++;
@@ -138,7 +143,6 @@
         }
     }
 
-    // Слушаем пробел
     window.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
             e.preventDefault();
@@ -146,6 +150,7 @@
         }
     });
 
+    // Инициализация
     render();
 </script>
 </body>
