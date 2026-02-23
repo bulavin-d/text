@@ -3,171 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN - GLASS PRESETS</title>
+    <title>LIQUID GLASS NOTIFICATIONS</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background: #000;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Фиксация сверху */
-            padding-top: 10vh; 
+            flex-direction: column;
+            align-items: center;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        #lyric-box {
-            width: 85%;
-            max-width: 360px;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .line {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            min-height: 1.5em;
-        }
-
-        .word {
-            font-size: clamp(1.8rem, 8vw, 2.5rem);
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -1px;
+        /* Контейнер для уведомлений */
+        #notification-container {
             position: relative;
-            opacity: 0;
-            filter: blur(10px);
-            transform: translateX(-20px) skewX(-10deg);
-            transition: 
-                opacity 0.5s cubic-bezier(0.2, 0, 0.2, 1),
-                filter 0.6s ease-out,
-                transform 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+            width: 90%;
+            max-width: 350px;
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column-reverse; /* Новые сверху, старые вниз */
+            gap: 12px;
+        }
+
+        .notification {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 22px;
+            /* Эффект Liquid Glass */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             
-            /* Стеклянный эффект */
-            color: rgba(255, 255, 255, 0.95);
+            color: white;
+            font-size: 17px;
+            font-weight: 500;
+            
+            /* Анимация появления */
+            opacity: 0;
+            transform: scale(0.8) translateY(-50px);
+            animation: springIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            
+            transition: all 0.5s ease;
+            position: relative;
         }
 
-        /* Анимация проявления */
-        .word.visible {
-            opacity: 1;
-            filter: blur(0);
-            transform: translateX(0) skewX(0);
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        /* Тень под текстом как в iOS */
+        .text {
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* Для совсем "стеклянного" вида добавим блик при появлении */
-        .word::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.8s;
+        /* Заголовок "Telegram" */
+        .header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            opacity: 0.5;
+            display: flex;
+            justify-content: space-between;
         }
 
-        .word.visible::after {
-            transform: translateX(100%);
+        @keyframes springIn {
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
+
+        /* Старые уведомления становятся тусклее */
+        .notification:not(:first-child) {
+            opacity: 0.6;
+            transform: scale(0.95);
+            filter: blur(1px);
+        }
+
     </style>
 </head>
-<body onclick="handleTap()">
+<body onclick="showNext()">
 
-<div id="lyric-box"></div>
+<div id="notification-container"></div>
 
 <script>
-    const fullText = `Я уже по уши в лапше, открой мне душу киса
-Я хочу засыпать спокойно, нахуй мне актрисы
-Я слепо верю в чистое, сам как монета чистая 
-Если захочешь меня ёбнуть, хоть налей игристого 
+    const messages = [
+        "Мы расстаемся…",
+        "Я так больше не могу",
+        "Прощай 💔"
+    ];
 
-Перед тем как меня завалить окутай лаской 
-Расскажи мне сказку, разочаруй в прекрасном 
-Докажи мне, что не ошибался 
-Детка, параноику не больно обжигаться 
+    let currentIdx = 0;
+    const container = document.getElementById('notification-container');
 
-Можешь смеяться, похуй я давно предвидел всё что будет дальше 
-Мозг мне не врет, я знаю, плюс я помню запах фальши 
-Хуйню не скрыть за мэйкап, слезы это не хайлайтер 
-Крутой газглайтинг, это говорить что я газлайтер 
+    function showNext() {
+        if (currentIdx >= messages.length) return;
 
-Напомни мне какой я, я могу ещё хуже 
-Только начни, и вся хуйня с меня выйдет наружу 
-Самый хуевый парень, буду хуевыем мужем 
-Мне так сказали те, кому моя кровь это ужин 
+        const notif = document.createElement('div');
+        notif.className = 'notification';
+        
+        // Получаем текущее время для правдоподобности
+        const now = new Date();
+        const time = now.getHours() + ":" + (now.getMinutes()<10?'0':'') + now.getMinutes();
 
-Ты красивая очень, скажи мне сколько это стоит, е
-Я через чур простой, я не хочу заёбов, е
-Что для других любовь, ты назовешь простоем, е
-Твой бизнес не простой, там ничего святого нет 
+        notif.innerHTML = `
+            <div class="header">
+                <span>TELEGRAM</span>
+                <span>${time}</span>
+            </div>
+            <div class="text">${messages[currentIdx]}</div>
+        `;
 
-Перед тем как меня завалить окутай лаской 
-Расскажи мне сказку, разочаруй в прекрасном 
-Докажи мне, что не ошибался 
-Детка, параноику не больно обжигаться
+        container.appendChild(notif);
+        currentIdx++;
 
-Перед тем как меня завалить окутай лаской 
-Расскажи мне сказку, разочаруй в прекрасном 
-Докажи мне, что не ошибался 
-Детка, параноику не больно обжигаться`;
-
-    // Разбиваем на блоки по пустым строкам
-    const groups = fullText.trim().split(/\n\s*\n/).map(block => block.split('\n'));
-    
-    let currentGroup = 0;
-    let currentWord = 0;
-    let wordsInView = [];
-    const container = document.getElementById('lyric-box');
-
-    function renderGroup(index) {
-        // МГНОВЕННОЕ ОЧИЩЕНИЕ
-        container.innerHTML = '';
-        wordsInView = [];
-        currentWord = 0;
-
-        if (index >= groups.length) {
-            location.reload(); // Конец трека — рестарт
-            return;
-        }
-
-        groups[index].forEach(lineText => {
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'line';
-            
-            lineText.trim().split(/\s+/).forEach(w => {
-                const span = document.createElement('span');
-                span.className = 'word';
-                span.innerText = w;
-                lineDiv.appendChild(span);
-                wordsInView.push(span);
-            });
-            container.appendChild(lineDiv);
-        });
-    }
-
-    function handleTap() {
-        if (currentWord < wordsInView.length) {
-            wordsInView[currentWord].classList.add('visible');
-            currentWord++;
-        } else {
-            currentGroup++;
-            renderGroup(currentGroup);
+        // Виброотклик для айфона (если поддерживается)
+        if (window.navigator.vibrate) {
+            window.navigator.vibrate(10);
         }
     }
 
-    // Для компа
+    // Слушатель пробела
     window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') { e.preventDefault(); handleTap(); }
+        if (e.code === 'Space') {
+            e.preventDefault();
+            showNext();
+        }
     });
-
-    renderGroup(0);
 </script>
 </body>
 </html>
