@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TG LIQUID GLASS PRO</title>
+    <title>TG GLASS CHAT PRESETS</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
@@ -16,114 +17,162 @@
             flex-direction: column;
             color: white;
             overflow: hidden;
+            transition: 0.3s;
+        }
+
+        /* Эффект при записи: блюрим всё кроме футера */
+        body.recording #chat-area, body.recording .header {
+            filter: blur(15px);
+            opacity: 0.4;
         }
 
         .header {
-            height: 60px; background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
-            display: flex; align-items: center; padding: 0 20px; z-index: 100;
+            display: flex; align-items: center; padding: 0 16px; z-index: 100;
         }
 
-        /* Контейнер сообщений: растут снизу вверх */
+        .avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            margin-right: 12px;
+        }
+
         #chat-area {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             display: flex;
-            flex-direction: column-reverse; /* НОВИНКА: Новые внизу */
-            gap: 12px;
+            flex-direction: column-reverse; /* Сообщения растут снизу */
+            gap: 8px;
             overflow-y: auto;
-            padding-bottom: 100px;
         }
 
+        /* Стиль сообщения как в ТГ */
         .msg {
-            max-width: 80%; padding: 10px 14px; border-radius: 18px 18px 18px 5px;
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(35px) saturate(160%);
-            border: 0.5px solid rgba(255, 255, 255, 0.2);
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 8px 20px rgba(0,0,0,0.4);
-            animation: msgPop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+            max-width: 80%;
+            position: relative;
+            padding: 8px 12px 6px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px) saturate(180%);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px 18px 18px 4px; /* Тот самый ТГ-уголок */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.1);
+            animation: msgPop 0.3s cubic-bezier(0.1, 0.9, 0.2, 1.1) forwards;
             align-self: flex-start;
         }
 
-        @keyframes msgPop { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes msgPop {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
 
-        .msg-time { font-size: 10px; opacity: 0.4; float: right; margin: 6px 0 0 10px; }
+        .msg-text { font-size: 16px; line-height: 1.4; color: #fff; }
+        .msg-time { 
+            font-size: 11px; opacity: 0.5; color: #fff;
+            margin-left: 8px; position: relative; top: 3px; float: right;
+        }
 
         .footer {
-            position: fixed; bottom: 0; width: 100%; height: 90px;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(25px);
-            border-top: 0.5px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; padding: 0 15px; gap: 12px; z-index: 200;
+            position: fixed; bottom: 0; width: 100%; height: 85px;
+            display: flex; align-items: center; padding: 0 12px; gap: 10px;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(255,255,255,0.1); z-index: 200;
         }
 
-        .input-box { flex: 1; height: 42px; background: rgba(255,255,255,0.06); border-radius: 22px; border: 1px solid rgba(255,255,255,0.1); }
+        .input-fake {
+            flex: 1; height: 40px; border-radius: 20px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+        }
 
-        /* Кнопка микрофона */
+        .mic-container { position: relative; width: 50px; height: 50px; }
+
         .mic-btn {
-            width: 48px; height: 48px; background: #0088cc; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            position: relative; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            touch-action: none;
+            width: 48px; height: 48px; background: #0088cc;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 10;
+            transition: background 0.3s, transform 0.2s;
         }
 
-        /* Эффект сияющей материи (волна) */
-        .mic-btn.locked {
-            background: #ff3b30;
-            box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.6);
-            animation: pulseWave 1.5s infinite;
+        .mic-btn.active { background: #ff3b30; }
+
+        /* Живая материя (волны) */
+        .waves {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: none;
         }
 
-        @keyframes pulseWave {
-            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7), 0 0 0 0 rgba(255, 59, 48, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 59, 48, 0), 0 0 0 30px rgba(255, 59, 48, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0), 0 0 0 0 rgba(255, 59, 48, 0); }
+        .mic-btn.locked .waves { display: block; }
+
+        .wave {
+            position: absolute; top: 50%; left: 50%;
+            width: 48px; height: 48px; background: rgba(255, 59, 48, 0.4);
+            border-radius: 50%; transform: translate(-50%, -50%);
+            animation: waveAnim 2s infinite;
+        }
+        .wave:nth-child(2) { animation-delay: 0.6s; }
+        .wave:nth-child(3) { animation-delay: 1.2s; }
+
+        @keyframes waveAnim {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
         }
 
         #timer {
-            position: absolute; right: 80px; bottom: 34px; color: #ff3b30;
-            font-size: 18px; font-weight: 600; display: none;
+            position: absolute; right: 75px; bottom: 32px;
+            font-size: 18px; font-weight: 600; color: #ff3b30;
+            display: none;
         }
-        body.rec-on #timer { display: block; }
-        body.rec-on #chat-area { filter: blur(10px); opacity: 0.3; }
+        body.recording #timer { display: block; }
 
         svg { fill: white; width: 24px; height: 24px; }
     </style>
 </head>
-<body onclick="addMsg(event)">
+<body onclick="spawn(event)">
 
     <div class="header">
-        <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(45deg, #2af598, #009efd); margin-right: 12px;"></div>
-        <div style="font-weight: 600;">TG Glass Bot</div>
+        <div class="avatar"></div>
+        <div style="font-weight: 600;">Солнышко</div>
     </div>
 
-    <div id="chat-area">
-        </div>
+    <div id="chat-area"></div>
 
     <div id="timer">0:00</div>
 
     <div class="footer">
-        <div class="input-box"></div>
-        <div class="mic-btn" id="mic">
-            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        <div style="width: 24px; height: 24px; opacity: 0.5;">
+            <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        </div>
+        <div class="input-fake"></div>
+        <div class="mic-container">
+            <div class="mic-btn" id="mic">
+                <div class="waves">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </div>
         </div>
     </div>
 
 <script>
-    const msgs = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
+    const list = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
     let idx = 0;
 
-    function addMsg(e) {
-        if (e.target.closest('.mic-btn')) return;
-        if (idx >= msgs.length) return;
+    function spawn(e) {
+        if (e.target.closest('.mic-container')) return;
+        if (idx >= list.length) return;
 
         const now = new Date();
-        const t = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        const time = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
 
-        const div = document.createElement('div');
-        div.className = 'msg';
-        div.innerHTML = `${msgs[idx]} <span class="msg-time">${t}</span>`;
+        const el = document.createElement('div');
+        el.className = 'msg';
+        el.innerHTML = `<div class="msg-text">${list[idx]}</div><div class="msg-time">${time}</div>`;
         
-        document.getElementById('chat-area').prepend(div); // prepend добавляет в начало (внизу из-за column-reverse)
+        document.getElementById('chat-area').prepend(el);
         idx++;
         if (navigator.vibrate) navigator.vibrate(15);
     }
@@ -132,50 +181,41 @@
     const body = document.body;
     let startY = 0;
     let isLocked = false;
-    let timerInt;
+    let tInt;
 
     mic.addEventListener('touchstart', (e) => {
         if (isLocked) return;
         startY = e.touches[0].clientY;
-        body.classList.add('rec-on');
-        mic.style.background = '#ff3b30';
-        mic.style.transform = 'scale(1.2)';
+        body.classList.add('recording');
+        mic.classList.add('active');
         startTimer();
     });
 
     mic.addEventListener('touchmove', (e) => {
         if (isLocked) return;
-        let moveY = e.touches[0].clientY;
-        if (startY - moveY > 70) { // Свайп вверх
+        let diff = startY - e.touches[0].clientY;
+        if (diff > 60) {
             isLocked = true;
             mic.classList.add('locked');
-            mic.style.transform = 'scale(1.2)';
-            if (navigator.vibrate) navigator.vibrate([20, 50]);
+            if (navigator.vibrate) navigator.vibrate([20, 40]);
         }
     });
 
-    mic.addEventListener('touchend', () => {
-        if (!isLocked) stopRec();
-    });
-
-    mic.addEventListener('click', () => {
-        if (isLocked) stopRec();
-    });
+    mic.addEventListener('touchend', () => { if (!isLocked) stopRec(); });
+    mic.addEventListener('click', () => { if (isLocked) stopRec(); });
 
     function stopRec() {
         isLocked = false;
-        body.classList.remove('rec-on');
-        mic.classList.remove('locked');
-        mic.style.background = '#0088cc';
-        mic.style.transform = 'scale(1)';
-        clearInterval(timerInt);
+        body.classList.remove('recording');
+        mic.classList.remove('active', 'locked');
+        clearInterval(tInt);
         document.getElementById('timer').innerText = "0:00";
     }
 
     function startTimer() {
         let s = 0;
-        clearInterval(timerInt);
-        timerInt = setInterval(() => {
+        clearInterval(tInt);
+        tInt = setInterval(() => {
             s++;
             let min = Math.floor(s/60);
             let sec = s%60;
