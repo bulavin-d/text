@@ -3,168 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN - PREMIUM</title>
+    <title>BULAVIN FINAL</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-
         body {
+            margin: 0;
             background: #000;
             color: #fff;
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Строго сверху */
-            padding-top: 15vh;
+            align-items: flex-start;
+            padding-top: 10vh;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         #lyric-box {
-            width: 90%;
-            max-width: 330px; /* Идеально для iPhone */
-            display: flex;
+            width: 85%;
+            max-width: 320px;
+        }
+
+        .paragraph {
+            display: none; /* Прячем все блоки изначально */
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
+        }
+
+        .paragraph.active {
+            display: flex;
         }
 
         .line {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            line-height: 1.2;
+            word-wrap: break-word;
         }
 
         .word {
-            display: flex;
-            font-size: 22px;
+            display: inline-block;
+            font-size: 28px;
             font-style: italic;
             text-transform: uppercase;
-            perspective: 1000px; /* Глубина для букв */
-        }
-
-        .char {
-            display: inline-block;
+            letter-spacing: -1px;
             opacity: 0;
-            transform: rotateX(-90deg) translateZ(20px); /* Начальное положение (разворот) */
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: rotateX(-90deg) translateZ(30px);
+            transition: all 0.4s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+            margin-right: 6px;
         }
 
-        .char.active {
+        .word.visible {
             opacity: 1;
-            transform: rotateX(0deg) translateZ(0); /* Финальное положение */
+            transform: rotateX(0deg) translateZ(0);
         }
     </style>
 </head>
-<body onclick="handleAction()">
+<body onclick="next()">
 
-<div id="lyric-box"></div>
+<div id="lyric-box">
+    <div class="paragraph active">
+        <div class="line">Я уже по уши в лапше, открой мне душу киса</div>
+        <div class="line">Я хочу засыпать спокойно, нахуй мне актрисы</div>
+        <div class="line">Я слепо верю в чистое, сам как монета чистая</div>
+        <div class="line">Если захочешь меня ёбнуть, хоть налей игристого</div>
+    </div>
+
+    <div class="paragraph">
+        <div class="line">Перед тем как меня завалить окутай лаской</div>
+        <div class="line">Расскажи мне сказку, разочаруй в прекрасном</div>
+        <div class="line">Докажи мне, что не ошибался</div>
+        <div class="line">Детка, параноику не больно обжигаться</div>
+    </div>
+
+    <div class="paragraph">
+        <div class="line">Можешь смеяться, похуй я давно предвидел всё что будет дальше</div>
+        <div class="line">Мозг мне не врет, я знаю, плюс я помню запах фальши</div>
+        <div class="line">Хуйню не скрыть за мэйкап, слезы это не хайлайтер</div>
+        <div class="line">Крутой газглайтинг, это говорить что я газлайтер</div>
+    </div>
+
+    <div class="paragraph">
+        <div class="line">Напомни мне какой я, я могу ещё хуже</div>
+        <div class="line">Только начни, и вся хуйня с меня выйдет наружу</div>
+        <div class="line">Самый хуевый парень, буду хуевыем мужем</div>
+        <div class="line">Мне так сказали те, кому моя кровь это ужин</div>
+    </div>
+
+    <div class="paragraph">
+        <div class="line">Ты красивая очень, скажи мне сколько это стоит, е</div>
+        <div class="line">Я через чур простой, я не хочу заёбов, е</div>
+        <div class="line">Что для других любовь, ты назовешь простоем, е</div>
+        <div class="line">Твой бизнес не простой, там ничего святого нет</div>
+    </div>
+
+    <div class="paragraph">
+        <div class="line">Перед тем как меня завалить окутай лаской</div>
+        <div class="line">Расскажи мне сказку, разочаруй в прекрасном</div>
+        <div class="line">Докажи мне, что не ошибался</div>
+        <div class="line">Детка, параноику не больно обжигаться</div>
+    </div>
+</div>
 
 <script>
-    const text = `Я уже по уши в лапше, открой мне душу киса
-Я хочу засыпать спокойно, нахуй мне актрисы
-Я слепо верю в чистое, сам как монета чистая 
-Если захочешь меня ёбнуть, хоть налей игристого 
+    // Подготовка текста: разбиваем строки на слова-спаны
+    document.querySelectorAll('.line').forEach(line => {
+        const words = line.innerText.split(' ');
+        line.innerHTML = words.map(w => `<span class="word">${w}</span>`).join(' ');
+    });
 
-Перед тем как меня завалить окутай лаской 
-Расскажи мне сказку, разочаруй в прекрасном 
-Докажи мне, что не ошибался 
-Детка, параноику не больно обжигаться 
-
-Можешь смеяться, похуй я давно предвидел всё что будет дальше 
-Мозг мне не врет, я знаю, плюс я помню запах фальши 
-Хуйню не скрыть за мэйкап, слезы это не хайлайтер 
-Крутой газглайтинг, это говорить что я газлайтер 
-
-Напомни мне какой я, я могу ещё хуже 
-Только начни, и вся хуйня с меня выйдет наружу 
-Самый хуевый парень, буду хуевыем мужем 
-Мне так сказали те, кому моя кровь это ужин 
-
-Ты красивая очень, скажи мне сколько это стоит, е
-Я через чур простой, я не хочу заёбов, е
-Что для других любовь, ты назовешь простоем, е
-Твой бизнес не простой, там ничего святого нет 
-
-Перед тем как меня завалить окутай лаской 
-Расскажи мне сказку, разочаруй в прекрасном 
-Докажи мне, что не ошибался 
-Детка, параноику не больно обжигаться
-
-Перед тем как меня завалить окутай лаской 
-Расскажи мне сказку, разочаруй в прекрасном 
-Докажи мне, что не ошибался 
-Детка, параноику не больно обжигаться`;
-
-    // Делим на блоки по пустым строкам
-    const blocks = text.trim().split(/\n\s*\n/);
-    let currentBlock = 0;
+    let currentPara = 0;
     let currentWord = 0;
-    let wordsNodes = [];
 
-    const box = document.getElementById('lyric-box');
+    function next() {
+        const paragraphs = document.querySelectorAll('.paragraph');
+        const activePara = paragraphs[currentPara];
+        const words = activePara.querySelectorAll('.word');
 
-    function renderBlock(index) {
-        box.innerHTML = ''; // ПОЛНАЯ ОЧИСТКА
-        wordsNodes = [];
-        currentWord = 0;
-
-        if (index >= blocks.length) return;
-
-        const lines = blocks[index].split('\n');
-        lines.forEach(lineText => {
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'line';
-            
-            lineText.trim().split(/\s+/).forEach(wordText => {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'word';
-                
-                // Разбиваем слово на буквы
-                [...wordText].forEach(char => {
-                    const charSpan = document.createElement('span');
-                    charSpan.className = 'char';
-                    charSpan.innerText = char;
-                    wordSpan.appendChild(charSpan);
-                });
-                
-                lineDiv.appendChild(wordSpan);
-                wordsNodes.push(wordSpan);
-            });
-            box.appendChild(lineDiv);
-        });
-    }
-
-    function handleAction() {
-        if (currentWord < wordsNodes.length) {
-            // Анимируем буквы внутри слова
-            const chars = wordsNodes[currentWord].querySelectorAll('.char');
-            chars.forEach((c, i) => {
-                setTimeout(() => c.classList.add('active'), i * 40); // Задержка между буквами
-            });
+        if (currentWord < words.length) {
+            words[currentWord].classList.add('visible');
             currentWord++;
         } else {
             // Переход к следующему блоку
-            currentBlock++;
-            if (currentBlock < blocks.length) {
-                renderBlock(currentBlock);
+            activePara.classList.remove('active');
+            currentPara++;
+            
+            if (currentPara < paragraphs.length) {
+                paragraphs[currentPara].classList.add('active');
+                currentWord = 0;
             } else {
-                box.innerHTML = '<div style="font-size:12px; color:gray">FINISH.</div>';
+                location.reload(); // Рестарт в конце
             }
         }
     }
 
-    // Слушаем пробел
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault();
-            handleAction();
-        }
-    });
-
-    // Стартуем
-    renderBlock(currentBlock);
+    window.addEventListener('keydown', (e) => { if(e.code === 'Space') next(); });
 </script>
 </body>
 </html>
