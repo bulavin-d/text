@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TG Glass Ultimate</title>
+    <title>TG FINAL LIQUID</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         
@@ -11,174 +11,165 @@
 
         body {
             background: #000;
-            height: 100dvh;
-            font-family: 'Inter', -apple-system, sans-serif;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
-            color: white;
             overflow: hidden;
+            color: white;
         }
 
-        /* Фоновый паттерн как на скринах */
-        .bg-pattern {
-            position: absolute; width: 100%; height: 100%;
-            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
-            opacity: 0.1; pointer-events: none;
-        }
-
+        /* Шапка */
         .header {
             height: 60px; padding: 0 16px;
             display: flex; align-items: center;
-            background: rgba(20, 20, 20, 0.8);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
-            z-index: 100;
+            z-index: 50;
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(45deg, #ff9a9e, #fad0c4); margin-right: 12px; }
+
+        /* Зона чата - кликабельная */
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Сообщения липнут к низу */
+            padding: 16px;
+            gap: 8px;
+            z-index: 10;
+            cursor: pointer;
         }
 
-        /* Чат зона: сообщения растут снизу */
-        #chat-area {
-            flex: 1; padding: 16px;
-            display: flex; flex-direction: column;
-            justify-content: flex-end; /* Всегда снизу */
-            gap: 8px; overflow-y: auto;
-            position: relative; z-index: 10;
-        }
-
-        /* Пузырек сообщения */
+        /* Бабл сообщения */
         .msg {
-            max-width: 75%; padding: 8px 12px 6px 14px;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(40px) saturate(180%);
-            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            max-width: 75%;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px) saturate(150%);
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
             border-radius: 18px 18px 18px 4px;
-            position: relative; align-self: flex-start;
-            animation: msgPop 0.3s cubic-bezier(0.1, 0.9, 0.2, 1.1);
+            position: relative;
+            align-self: flex-start;
+            animation: msgPop 0.25s cubic-bezier(0.1, 0.9, 0.2, 1.1);
         }
 
-        /* Тот самый "хвостик" из скрина */
+        /* Элегантный хвост (как в ТГ) */
         .msg::after {
-            content: ""; position: absolute;
-            left: -8px; bottom: 0;
-            width: 15px; height: 15px;
+            content: "";
+            position: absolute;
+            left: -5px; bottom: 0;
+            width: 10px; height: 10px;
             background: inherit;
-            mask-image: url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 15 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 15H0C0 15 8.5 15 11.5 10C13 7.5 15 0 15 0V15Z' fill='black'/%3E%3C/svg%3E");
-            -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 15 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 15H0C0 15 8.5 15 11.5 10C13 7.5 15 0 15 0V15Z' fill='black'/%3E%3C/svg%3E");
-            mask-size: contain; -webkit-mask-size: contain;
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
+            z-index: -1;
         }
 
-        @keyframes msgPop { from { opacity: 0; transform: scale(0.9) translateY(10px); } }
+        @keyframes msgPop { from { opacity: 0; transform: translateY(10px) scale(0.95); } }
 
-        .msg-text { font-size: 16px; line-height: 1.4; padding-right: 40px; }
-        .msg-time { font-size: 11px; opacity: 0.5; position: absolute; right: 10px; bottom: 6px; }
+        .msg-text { font-size: 16px; line-height: 1.4; margin-bottom: 2px; }
+        .msg-time { font-size: 11px; opacity: 0.5; float: right; margin-left: 10px; margin-top: 4px; }
 
         /* Футер */
         .footer {
-            height: 80px; padding: 0 12px;
-            display: flex; align-items: center; gap: 10px;
-            background: rgba(15, 15, 15, 0.9);
-            backdrop-filter: blur(30px);
+            height: 85px; padding: 0 12px;
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(25px);
             border-top: 0.5px solid rgba(255, 255, 255, 0.1);
-            z-index: 200; position: relative;
+            z-index: 100;
         }
 
-        .input-box {
+        .input-fake {
             flex: 1; height: 42px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 21px; border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex; align-items: center; padding: 0 15px;
-            color: rgba(255, 255, 255, 0.4); font-size: 16px;
-            position: relative;
+            color: rgba(255, 255, 255, 0.3);
         }
 
-        /* Звуковая материя вокруг микрофона */
-        .mic-container { position: relative; width: 50px; height: 50px; }
-        
+        /* Микрофон и Эффект Материи */
+        .mic-box { position: relative; width: 50px; height: 50px; }
         .mic-btn {
             width: 50px; height: 50px; background: #0088cc;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            position: relative; z-index: 10; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; z-index: 110; transition: 0.3s;
         }
+        .mic-btn.active { background: #ff3b30; transform: scale(1.1); }
 
-        .mic-btn.active { background: #ff3b30; }
-
-        .matter-wave {
+        /* Материя (волны вокруг) */
+        .matter {
             position: absolute; top: 50%; left: 50%;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(255, 59, 48, 0.3);
+            width: 50px; height: 50px;
+            background: rgba(255, 59, 48, 0.4);
+            border-radius: 50%;
             transform: translate(-50%, -50%);
-            pointer-events: none; display: none;
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.5);
+            filter: blur(15px);
+            display: none; pointer-events: none;
         }
+        .mic-btn.locked + .matter { display: block; animation: liquid 2s infinite ease-out; }
 
-        .mic-btn.locked + .matter-wave {
-            display: block; animation: liquidMatter 2s infinite ease-out;
-        }
-
-        @keyframes liquidMatter {
+        @keyframes liquid {
             0% { width: 50px; height: 50px; opacity: 0.8; }
-            50% { width: 130px; height: 130px; opacity: 0.3; }
-            100% { width: 180px; height: 180px; opacity: 0; }
+            50% { width: 140px; height: 140px; opacity: 0.3; }
+            100% { width: 50px; height: 50px; opacity: 0.8; }
         }
 
-        /* Таймер записи */
-        #rec-ui {
-            position: absolute; left: 60px; bottom: 30px;
-            display: none; align-items: center; gap: 8px;
-            color: #ff3b30; font-weight: 600; font-size: 18px;
-            z-index: 150;
+        #timer {
+            position: absolute; right: 80px; bottom: 33px;
+            color: #ff3b30; font-size: 18px; font-weight: 600;
+            display: none; z-index: 120;
         }
-        body.recording #rec-ui { display: flex; }
-        body.recording #chat-area { filter: blur(15px); opacity: 0.3; }
+        body.recording #timer { display: block; }
+        body.recording #chat-container { filter: blur(10px); opacity: 0.4; }
 
         svg { fill: white; width: 26px; height: 26px; }
     </style>
 </head>
-<body onclick="spawn(event)">
-
-    <div class="bg-pattern"></div>
+<body>
 
     <div class="header">
-        <div style="width: 40px; height: 40px; border-radius: 50%; background: #ffb3ba; margin-right: 12px;"></div>
+        <div class="avatar"></div>
         <div style="font-weight: 600;">Солнышко</div>
     </div>
 
-    <div id="chat-area">
-        </div>
+    <div id="chat-container" onclick="addMsg()"></div>
 
-    <div id="rec-ui">
-        <div style="width: 10px; height: 10px; background: #ff3b30; border-radius: 50%; animation: pulse 1s infinite;"></div>
-        <span id="timer">0:01</span>
-        <span style="margin-left: 20px; color: #0088cc; font-weight: 400; font-size: 16px;">Отмена</span>
-    </div>
+    <div id="timer">0:01</div>
 
     <div class="footer">
-        <svg viewBox="0 0 24 24" style="opacity: 0.6;"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.48-2.02-4.5-4.5-4.5S6 2.52 6 5v12.5c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-1.5z"/></svg>
-        
-        <div class="input-box">
-            Сообщение
-            <svg viewBox="0 0 24 24" style="position: absolute; right: 12px; width: 22px; opacity: 0.5;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
-        </div>
-
-        <div class="mic-container">
+        <svg viewBox="0 0 24 24" style="opacity: 0.5;"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.48-2.02-4.5-4.5-4.5S6 2.52 6 5v12.5c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-1.5z"/></svg>
+        <div class="input-fake">Сообщение</div>
+        <div class="mic-box">
             <div class="mic-btn" id="mic">
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </div>
-            <div class="matter-wave"></div>
+            <div class="matter"></div>
         </div>
     </div>
 
 <script>
-    const script = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
-    let step = 0;
+    const messages = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
+    let currentStep = 0;
 
-    function spawn(e) {
-        if (e.target.closest('.footer') || step >= script.length) return;
+    function addMsg() {
+        if (currentStep >= messages.length) return;
+
         const now = new Date();
-        const t = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        const time = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
         const div = document.createElement('div');
         div.className = 'msg';
-        div.innerHTML = `<div class="msg-text">${script[step++]}</div><div class="msg-time">${t}</div>`;
-        document.getElementById('chat-area').appendChild(div);
+        div.innerHTML = `<div class="msg-text">${messages[currentStep]}</div><div class="msg-time">${time}</div>`;
+        
+        const container = document.getElementById('chat-container');
+        container.appendChild(div);
+        
+        // Автопрокрутка вниз
+        container.scrollTop = container.scrollHeight;
+        
+        currentStep++;
         if (navigator.vibrate) navigator.vibrate(10);
     }
 
@@ -186,7 +177,7 @@
     const body = document.body;
     let startY = 0;
     let isLocked = false;
-    let timer;
+    let tInterval;
 
     mic.addEventListener('touchstart', (e) => {
         if (isLocked) return;
@@ -198,7 +189,8 @@
 
     mic.addEventListener('touchmove', (e) => {
         if (isLocked) return;
-        if (startY - e.touches[0].clientY > 60) {
+        let diff = startY - e.touches[0].clientY;
+        if (diff > 60) {
             isLocked = true;
             mic.classList.add('locked');
             if (navigator.vibrate) navigator.vibrate([20, 50]);
@@ -206,28 +198,33 @@
     });
 
     mic.addEventListener('touchend', () => { if (!isLocked) stopRec(); });
-    mic.addEventListener('click', () => { if (isLocked) stopRec(); });
+    
+    // Клик по заблокированному микрофону, чтобы остановить
+    mic.addEventListener('click', (e) => {
+        if (isLocked) {
+            stopRec();
+            e.stopPropagation();
+        }
+    });
 
     function stopRec() {
         isLocked = false;
         body.classList.remove('recording');
         mic.classList.remove('active', 'locked');
-        clearInterval(timer);
+        clearInterval(tInterval);
         document.getElementById('timer').innerText = "0:01";
     }
 
     function startTimer() {
         let s = 1;
-        clearInterval(timer);
-        timer = setInterval(() => {
+        clearInterval(tInterval);
+        tInterval = setInterval(() => {
             s++;
             let m = Math.floor(s/60);
             let sec = s%60;
             document.getElementById('timer').innerText = `${m}:${sec < 10 ? '0' : ''}${sec}`;
         }, 1000);
     }
-
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 </script>
 </body>
 </html>
