@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN - RAW</title>
+    <title>BULAVIN - FINAL CUT</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
@@ -18,20 +18,18 @@
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
-            align-items: center; /* Центровка блока по вертикали */
+            align-items: center; 
             justify-content: center;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         #lyric-box {
-            width: 85%;
-            max-width: 320px;
+            width: 90%; /* Оставляем небольшие поля по бокам */
+            max-width: 350px; /* Чтобы не растягивалось слишком сильно */
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
-            /* Легкий наклон внутрь без колхоза */
-            transform: perspective(1000px) rotateY(-10deg);
+            gap: 1rem;
             text-align: left;
         }
 
@@ -39,20 +37,17 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-start;
-            gap: 0.4rem;
+            gap: 0.35rem;
         }
 
         .word {
-            font-size: 1.8rem;
+            font-size: 1.6rem; /* Идеальный размер для записи на iPhone */
             font-style: italic;
             text-transform: uppercase;
             letter-spacing: -0.05em;
             opacity: 0;
-            transform: scale(0.95);
-            /* Плавный переход только по прозрачности и размеру */
-            transition: 
-                opacity 0.3s ease-out,
-                transform 0.3s ease-out;
+            transform: scale(0.98);
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
             color: #ffffff;
         }
 
@@ -63,71 +58,73 @@
 
         .hint {
             position: fixed;
-            bottom: 30px;
-            font-size: 8px;
+            bottom: 20px;
+            font-size: 7px;
             letter-spacing: 5px;
             opacity: 0.1;
-            text-transform: uppercase;
             width: 100%;
             text-align: center;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
 <div id="lyric-box"></div>
-<div class="hint">TAP</div>
+<div class="hint">TAP TO SCREEN</div>
 
 <script>
-    const fullText = `Я уже по уши в лапше, открой мне душу киса
+    // Твой текст с абзацами
+    const rawText = `Я уже по уши в лапше, открой мне душу киса
 Я хочу засыпать спокойно, нахуй мне актрисы
 Я слепо верю в чистое, сам как монета чистая 
 Если захочешь меня ёбнуть, хоть налей игристого 
+
 Перед тем как меня завалить окутай лаской 
 Расскажи мне сказку, разочаруй в прекрасном 
 Докажи мне, что не ошибался 
 Детка, параноику не больно обжигаться 
+
 Можешь смеяться, похуй я давно предвидел всё что будет дальше 
 Мозг мне не врет, я знаю, плюс я помню запах фальши 
 Хуйню не скрыть за мэйкап, слезы это не хайлайтер 
 Крутой газглайтинг, это говорить что я газлайтер 
+
 Напомни мне какой я, я могу ещё хуже 
 Только начни, и вся хуйня с меня выйдет наружу 
 Самый хуевый парень, буду хуевыем мужем 
 Мне так сказали те, кому моя кровь это ужин 
+
 Ты красивая очень, скажи мне сколько это стоит, е
 Я через чур простой, я не хочу заёбов, е
 Что для других любовь, ты назовешь простоем, е
 Твой бизнес не простой, там ничего святого нет 
+
 Перед тем как меня завалить окутай лаской 
 Расскажи мне сказку, разочаруй в прекрасном 
 Докажи мне, что не ошибался 
 Детка, параноику не больно обжигаться
+
 Перед тем как меня завалить окутай лаской 
 Расскажи мне сказку, разочаруй в прекрасном 
 Докажи мне, что не ошибался 
 Детка, параноику не больно обжигаться`;
 
-    const lyricBox = document.getElementById('lyric-box');
-    const linesArr = fullText.split('\n').map(l => l.trim()).filter(l => l !== '');
-    
-    let groups = [];
-    for (let i = 0; i < linesArr.length; i += 4) {
-        groups.push(linesArr.slice(i, i + 4));
-    }
+    // Разбиваем на группы по пустым строкам (абзацам)
+    const groups = rawText.split(/\n\s*\n/).map(group => group.split('\n').filter(l => l.trim() !== ''));
 
+    const lyricBox = document.getElementById('lyric-box');
     let currentGroupIndex = 0;
     let currentWordIndex = 0;
     let wordsInCurrentGroup = [];
 
     function renderGroup(index) {
-        // Ключевой момент: полное очищение контейнера
         lyricBox.innerHTML = '';
         wordsInCurrentGroup = [];
         currentWordIndex = 0;
 
         if (index >= groups.length) {
-            lyricBox.innerHTML = '<div class="line"><span class="word visible">FIN.</span></div>';
+            lyricBox.innerHTML = '<div class="line"><span class="word visible">BULAVIN</span></div>';
             return;
         }
 
@@ -135,7 +132,7 @@
             const lineDiv = document.createElement('div');
             lineDiv.classList.add('line');
             
-            lineText.split(/\s+/).forEach(w => {
+            lineText.trim().split(/\s+/).forEach(w => {
                 const span = document.createElement('span');
                 span.classList.add('word');
                 span.innerText = w;
@@ -146,7 +143,7 @@
         });
     }
 
-    function next() {
+    function trigger() {
         if (currentWordIndex < wordsInCurrentGroup.length) {
             wordsInCurrentGroup[currentWordIndex].classList.add('visible');
             currentWordIndex++;
@@ -156,9 +153,10 @@
         }
     }
 
-    window.addEventListener('touchstart', (e) => { e.preventDefault(); next(); }, { passive: false });
-    window.addEventListener('mousedown', (e) => { if (e.button === 0) next(); });
-    window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); next(); } });
+    // Слушаем всё: и тапы, и клики, и пробел
+    window.addEventListener('touchstart', (e) => { e.preventDefault(); trigger(); }, { passive: false });
+    window.addEventListener('mousedown', (e) => { if (e.button === 0) trigger(); });
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); trigger(); } });
 
     renderGroup(0);
 </script>
