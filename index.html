@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN - PREMIUM LYRIC</title>
+    <title>BULAVIN - RAW</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
@@ -18,21 +18,20 @@
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
-            align-items: center; 
+            align-items: center; /* Центровка блока по вертикали */
             justify-content: center;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
-            perspective: 1200px; /* Глубина для 3D */
         }
 
         #lyric-box {
             width: 85%;
-            max-width: 340px; /* Идеально под ширину iPhone */
+            max-width: 320px;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem; /* Расстояние между строками */
-            /* Тонкий наклон вглубь */
-            transform: rotateY(-10deg) rotateX(2deg);
+            gap: 1.2rem;
+            /* Легкий наклон внутрь без колхоза */
+            transform: perspective(1000px) rotateY(-10deg);
             text-align: left;
         }
 
@@ -40,40 +39,35 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-start;
-            gap: 0.5rem; /* Расстояние между словами */
+            gap: 0.4rem;
         }
 
         .word {
-            font-size: 1.9rem; /* Оптимальный размер для записи */
+            font-size: 1.8rem;
             font-style: italic;
             text-transform: uppercase;
             letter-spacing: -0.05em;
             opacity: 0;
-            filter: blur(12px);
-            transform: scale(1.1) translateZ(20px);
+            transform: scale(0.95);
+            /* Плавный переход только по прозрачности и размеру */
             transition: 
-                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                filter 0.5s ease-out,
-                transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-            color: #fff;
+                opacity 0.3s ease-out,
+                transform 0.3s ease-out;
+            color: #ffffff;
         }
 
-        /* Состояние после активации (тот самый Apple Smooth) */
         .word.visible {
             opacity: 1;
-            filter: blur(0);
-            transform: scale(1) translateZ(0);
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            transform: scale(1);
         }
 
         .hint {
             position: fixed;
-            bottom: 40px;
-            font-size: 9px;
+            bottom: 30px;
+            font-size: 8px;
             letter-spacing: 5px;
-            opacity: 0.2;
+            opacity: 0.1;
             text-transform: uppercase;
-            pointer-events: none;
             width: 100%;
             text-align: center;
         }
@@ -82,7 +76,7 @@
 <body>
 
 <div id="lyric-box"></div>
-<div class="hint">TAP TO PROCEED</div>
+<div class="hint">TAP</div>
 
 <script>
     const fullText = `Я уже по уши в лапше, открой мне душу киса
@@ -115,7 +109,7 @@
 Детка, параноику не больно обжигаться`;
 
     const lyricBox = document.getElementById('lyric-box');
-    const linesArr = fullText.split('\n').filter(l => l.trim() !== '');
+    const linesArr = fullText.split('\n').map(l => l.trim()).filter(l => l !== '');
     
     let groups = [];
     for (let i = 0; i < linesArr.length; i += 4) {
@@ -126,20 +120,22 @@
     let currentWordIndex = 0;
     let wordsInCurrentGroup = [];
 
-    function initGroup(index) {
-        if (index >= groups.length) {
-            lyricBox.innerHTML = '<div class="line"><span class="word visible">BULAVIN</span></div>';
-            return;
-        }
-        
+    function renderGroup(index) {
+        // Ключевой момент: полное очищение контейнера
         lyricBox.innerHTML = '';
         wordsInCurrentGroup = [];
         currentWordIndex = 0;
 
+        if (index >= groups.length) {
+            lyricBox.innerHTML = '<div class="line"><span class="word visible">FIN.</span></div>';
+            return;
+        }
+
         groups[index].forEach(lineText => {
             const lineDiv = document.createElement('div');
             lineDiv.classList.add('line');
-            lineText.trim().split(/\s+/).forEach(w => {
+            
+            lineText.split(/\s+/).forEach(w => {
                 const span = document.createElement('span');
                 span.classList.add('word');
                 span.innerText = w;
@@ -150,34 +146,21 @@
         });
     }
 
-    function handleInput() {
+    function next() {
         if (currentWordIndex < wordsInCurrentGroup.length) {
             wordsInCurrentGroup[currentWordIndex].classList.add('visible');
             currentWordIndex++;
         } else {
             currentGroupIndex++;
-            initGroup(currentGroupIndex);
+            renderGroup(currentGroupIndex);
         }
     }
 
-    // Слушатели для iPhone и PC
-    window.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleInput();
-    }, { passive: false });
+    window.addEventListener('touchstart', (e) => { e.preventDefault(); next(); }, { passive: false });
+    window.addEventListener('mousedown', (e) => { if (e.button === 0) next(); });
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); next(); } });
 
-    window.addEventListener('mousedown', (e) => {
-        if (e.pointerType === 'mouse') handleInput();
-    });
-
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault();
-            handleInput();
-        }
-    });
-
-    initGroup(0);
+    renderGroup(0);
 </script>
 </body>
 </html>
