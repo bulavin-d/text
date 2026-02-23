@@ -3,68 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LIQUID GLASS TG</title>
+    <title>BULAVIN - LIQUID GLASS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #000; /* Глубокий черный для монтажа */
+            background: #000;
             height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center; /* Строго центр экрана */
+            align-items: center;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        #container {
+        #wrapper {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
             width: 90%;
-            max-width: 340px;
-            /* Центрируем сам контейнер */
-            position: relative;
+            max-width: 350px;
             z-index: 10;
         }
 
         .notification {
             width: 100%;
             position: relative;
-            border-radius: 20px;
-            padding: 14px 18px;
+            border-radius: 24px;
+            padding: 16px 20px;
             color: #fff;
             
-            /* Эффект Liquid Glass */
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            /* Эффект сверхглубокого стекла */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
             
-            /* Двойная стеклянная обводка */
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            /* Тройная обводка для объема */
+            border: 0.5px solid rgba(255, 255, 255, 0.3);
             box-shadow: 
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 15px 35px rgba(0, 0, 0, 0.5);
+                inset 0 1px 1px rgba(255, 255, 255, 0.2), /* Верхний блик на грани */
+                inset 0 -1px 1px rgba(0, 0, 0, 0.2),     /* Нижняя тень внутри */
+                0 15px 35px rgba(0, 0, 0, 0.6);          /* Внешняя тень */
 
-            /* Анимация Apple */
+            /* Пружинная анимация Apple */
             opacity: 0;
-            transform: scale(0.9) translateY(30px);
-            animation: glassShow 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            transform: scale(0.85) translateY(40px);
+            animation: appleSpring 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        @keyframes glassShow {
+        @keyframes appleSpring {
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
             }
         }
 
+        /* Тонкий блик по поверхности */
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 20%; right: 20%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        }
+
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 6px;
+            margin-bottom: 7px;
         }
 
         .brand {
@@ -72,58 +79,54 @@
             align-items: center;
             gap: 8px;
             font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.8px;
-            opacity: 0.6;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0.7;
             text-transform: uppercase;
         }
 
-        /* Тот самый стеклянный логотип */
         .brand svg {
-            width: 16px;
-            height: 16px;
+            width: 16px; height: 16px;
             fill: #fff;
-            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
+            filter: drop-shadow(0 0 3px rgba(255,255,255,0.4));
         }
 
-        .time {
-            font-size: 11px;
-            opacity: 0.4;
-        }
+        .time { font-size: 11px; opacity: 0.4; }
 
         .content {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 400;
-            line-height: 1.4;
-            letter-spacing: -0.3px;
+            line-height: 1.35;
+            letter-spacing: -0.4px;
+            color: rgba(255, 255, 255, 0.95);
         }
     </style>
 </head>
-<body onclick="addNotif()">
+<body onclick="pop()">
 
-<div id="container"></div>
+<div id="wrapper"></div>
 
 <script>
-    const list = [
+    const msgs = [
         "Мы расстаемся…",
         "Я так больше не могу",
         "Прощай 💔"
     ];
 
-    let currentIdx = 0;
-    const container = document.getElementById('container');
+    let i = 0;
+    const wrapper = document.getElementById('wrapper');
 
-    function addNotif() {
-        if (currentIdx >= list.length) return;
+    function pop() {
+        if (i >= msgs.length) return;
 
-        const el = document.createElement('div');
-        el.className = 'notification';
+        const div = document.createElement('div');
+        div.className = 'notification';
         
-        const now = new Date();
-        const t = now.getHours().toString().padStart(2, '0') + ":" + 
-                  now.getMinutes().toString().padStart(2, '0');
+        const d = new Date();
+        const t = d.getHours().toString().padStart(2, '0') + ":" + 
+                  d.getMinutes().toString().padStart(2, '0');
 
-        el.innerHTML = `
+        div.innerHTML = `
             <div class="header">
                 <div class="brand">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.2z"/></svg>
@@ -131,23 +134,17 @@
                 </div>
                 <div class="time">${t}</div>
             </div>
-            <div class="content">${list[currentIdx]}</div>
+            <div class="content">${msgs[i]}</div>
         `;
 
-        container.appendChild(el);
-        currentIdx++;
+        wrapper.appendChild(div);
+        i++;
         
-        // Легкая вибрация при появлении
-        if (navigator.vibrate) navigator.vibrate(15);
+        // Хаптический фидбек
+        if (navigator.vibrate) navigator.vibrate(20);
     }
 
-    // Пробел для компа
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault();
-            addNotif();
-        }
-    });
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); pop(); } });
 </script>
 </body>
 </html>
