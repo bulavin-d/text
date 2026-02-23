@@ -3,141 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN FINAL</title>
+    <title>BULAVIN - GLASS PRESETS</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            margin: 0;
             background: #000;
             color: #fff;
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding-top: 10vh;
+            align-items: flex-start; /* Фиксация сверху */
+            padding-top: 10vh; 
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         #lyric-box {
             width: 85%;
-            max-width: 320px;
-        }
-
-        .paragraph {
-            display: none; /* Прячем все блоки изначально */
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .paragraph.active {
+            max-width: 360px;
             display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .line {
-            line-height: 1.2;
-            word-wrap: break-word;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            min-height: 1.5em;
         }
 
         .word {
-            display: inline-block;
-            font-size: 28px;
+            font-size: clamp(1.8rem, 8vw, 2.5rem);
             font-style: italic;
             text-transform: uppercase;
             letter-spacing: -1px;
+            position: relative;
             opacity: 0;
-            transform: rotateX(-90deg) translateZ(30px);
-            transition: all 0.4s cubic-bezier(0.15, 0.85, 0.35, 1.2);
-            margin-right: 6px;
+            filter: blur(10px);
+            transform: translateX(-20px) skewX(-10deg);
+            transition: 
+                opacity 0.5s cubic-bezier(0.2, 0, 0.2, 1),
+                filter 0.6s ease-out,
+                transform 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+            
+            /* Стеклянный эффект */
+            color: rgba(255, 255, 255, 0.95);
         }
 
+        /* Анимация проявления */
         .word.visible {
             opacity: 1;
-            transform: rotateX(0deg) translateZ(0);
+            filter: blur(0);
+            transform: translateX(0) skewX(0);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Для совсем "стеклянного" вида добавим блик при появлении */
+        .word::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.8s;
+        }
+
+        .word.visible::after {
+            transform: translateX(100%);
         }
     </style>
 </head>
-<body onclick="next()">
+<body onclick="handleTap()">
 
-<div id="lyric-box">
-    <div class="paragraph active">
-        <div class="line">Я уже по уши в лапше, открой мне душу киса</div>
-        <div class="line">Я хочу засыпать спокойно, нахуй мне актрисы</div>
-        <div class="line">Я слепо верю в чистое, сам как монета чистая</div>
-        <div class="line">Если захочешь меня ёбнуть, хоть налей игристого</div>
-    </div>
-
-    <div class="paragraph">
-        <div class="line">Перед тем как меня завалить окутай лаской</div>
-        <div class="line">Расскажи мне сказку, разочаруй в прекрасном</div>
-        <div class="line">Докажи мне, что не ошибался</div>
-        <div class="line">Детка, параноику не больно обжигаться</div>
-    </div>
-
-    <div class="paragraph">
-        <div class="line">Можешь смеяться, похуй я давно предвидел всё что будет дальше</div>
-        <div class="line">Мозг мне не врет, я знаю, плюс я помню запах фальши</div>
-        <div class="line">Хуйню не скрыть за мэйкап, слезы это не хайлайтер</div>
-        <div class="line">Крутой газглайтинг, это говорить что я газлайтер</div>
-    </div>
-
-    <div class="paragraph">
-        <div class="line">Напомни мне какой я, я могу ещё хуже</div>
-        <div class="line">Только начни, и вся хуйня с меня выйдет наружу</div>
-        <div class="line">Самый хуевый парень, буду хуевыем мужем</div>
-        <div class="line">Мне так сказали те, кому моя кровь это ужин</div>
-    </div>
-
-    <div class="paragraph">
-        <div class="line">Ты красивая очень, скажи мне сколько это стоит, е</div>
-        <div class="line">Я через чур простой, я не хочу заёбов, е</div>
-        <div class="line">Что для других любовь, ты назовешь простоем, е</div>
-        <div class="line">Твой бизнес не простой, там ничего святого нет</div>
-    </div>
-
-    <div class="paragraph">
-        <div class="line">Перед тем как меня завалить окутай лаской</div>
-        <div class="line">Расскажи мне сказку, разочаруй в прекрасном</div>
-        <div class="line">Докажи мне, что не ошибался</div>
-        <div class="line">Детка, параноику не больно обжигаться</div>
-    </div>
-</div>
+<div id="lyric-box"></div>
 
 <script>
-    // Подготовка текста: разбиваем строки на слова-спаны
-    document.querySelectorAll('.line').forEach(line => {
-        const words = line.innerText.split(' ');
-        line.innerHTML = words.map(w => `<span class="word">${w}</span>`).join(' ');
-    });
+    const fullText = `Я уже по уши в лапше, открой мне душу киса
+Я хочу засыпать спокойно, нахуй мне актрисы
+Я слепо верю в чистое, сам как монета чистая 
+Если захочешь меня ёбнуть, хоть налей игристого 
 
-    let currentPara = 0;
+Перед тем как меня завалить окутай лаской 
+Расскажи мне сказку, разочаруй в прекрасном 
+Докажи мне, что не ошибался 
+Детка, параноику не больно обжигаться 
+
+Можешь смеяться, похуй я давно предвидел всё что будет дальше 
+Мозг мне не врет, я знаю, плюс я помню запах фальши 
+Хуйню не скрыть за мэйкап, слезы это не хайлайтер 
+Крутой газглайтинг, это говорить что я газлайтер 
+
+Напомни мне какой я, я могу ещё хуже 
+Только начни, и вся хуйня с меня выйдет наружу 
+Самый хуевый парень, буду хуевыем мужем 
+Мне так сказали те, кому моя кровь это ужин 
+
+Ты красивая очень, скажи мне сколько это стоит, е
+Я через чур простой, я не хочу заёбов, е
+Что для других любовь, ты назовешь простоем, е
+Твой бизнес не простой, там ничего святого нет 
+
+Перед тем как меня завалить окутай лаской 
+Расскажи мне сказку, разочаруй в прекрасном 
+Докажи мне, что не ошибался 
+Детка, параноику не больно обжигаться
+
+Перед тем как меня завалить окутай лаской 
+Расскажи мне сказку, разочаруй в прекрасном 
+Докажи мне, что не ошибался 
+Детка, параноику не больно обжигаться`;
+
+    // Разбиваем на блоки по пустым строкам
+    const groups = fullText.trim().split(/\n\s*\n/).map(block => block.split('\n'));
+    
+    let currentGroup = 0;
     let currentWord = 0;
+    let wordsInView = [];
+    const container = document.getElementById('lyric-box');
 
-    function next() {
-        const paragraphs = document.querySelectorAll('.paragraph');
-        const activePara = paragraphs[currentPara];
-        const words = activePara.querySelectorAll('.word');
+    function renderGroup(index) {
+        // МГНОВЕННОЕ ОЧИЩЕНИЕ
+        container.innerHTML = '';
+        wordsInView = [];
+        currentWord = 0;
 
-        if (currentWord < words.length) {
-            words[currentWord].classList.add('visible');
+        if (index >= groups.length) {
+            location.reload(); // Конец трека — рестарт
+            return;
+        }
+
+        groups[index].forEach(lineText => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'line';
+            
+            lineText.trim().split(/\s+/).forEach(w => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.innerText = w;
+                lineDiv.appendChild(span);
+                wordsInView.push(span);
+            });
+            container.appendChild(lineDiv);
+        });
+    }
+
+    function handleTap() {
+        if (currentWord < wordsInView.length) {
+            wordsInView[currentWord].classList.add('visible');
             currentWord++;
         } else {
-            // Переход к следующему блоку
-            activePara.classList.remove('active');
-            currentPara++;
-            
-            if (currentPara < paragraphs.length) {
-                paragraphs[currentPara].classList.add('active');
-                currentWord = 0;
-            } else {
-                location.reload(); // Рестарт в конце
-            }
+            currentGroup++;
+            renderGroup(currentGroup);
         }
     }
 
-    window.addEventListener('keydown', (e) => { if(e.code === 'Space') next(); });
+    // Для компа
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') { e.preventDefault(); handleTap(); }
+    });
+
+    renderGroup(0);
 </script>
 </body>
 </html>
