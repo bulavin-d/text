@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TG LIQUID CHAT</title>
+    <title>TG PREMIUM VOICEMAIL</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
@@ -17,218 +17,169 @@
             flex-direction: column;
             overflow: hidden;
             color: white;
+            transition: filter 0.4s ease;
         }
 
-        /* Хедер */
+        /* Состояние при записи */
+        body.recording-active #chat-area, 
+        body.recording-active .header,
+        body.recording-active .glass-input {
+            filter: blur(15px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         .header {
             height: 60px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 100;
+            display: flex; align-items: center; padding: 0 20px; z-index: 100;
         }
 
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(45deg, #2af598 0%, #009efd 100%); }
-        .user-name { font-weight: 600; font-size: 16px; }
-
-        /* Область сообщений */
         #chat-area {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-bottom: 80px;
+            flex: 1; padding: 20px; display: flex; flex-direction: column;
+            justify-content: flex-end; gap: 8px; margin-bottom: 90px;
+            transition: all 0.4s ease;
         }
 
         .msg {
-            max-width: 80%;
-            padding: 10px 16px;
-            border-radius: 18px 18px 18px 4px;
-            font-size: 16px;
-            line-height: 1.4;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 4px 15px rgba(0,0,0,0.3);
-            opacity: 0;
-            transform: translateY(20px) scale(0.9);
-            animation: msgPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            align-self: flex-start;
-            position: relative;
+            max-width: 75%; padding: 10px 16px; border-radius: 18px 18px 18px 5px;
+            font-size: 16px; background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: msgPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
         }
 
-        @keyframes msgPop {
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        @keyframes msgPop { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .time {
-            font-size: 10px;
-            opacity: 0.5;
-            float: right;
-            margin-top: 4px;
-            margin-left: 8px;
-        }
-
-        /* Футер (Поле ввода) */
         .input-area {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+            position: fixed; bottom: 0; width: 100%; height: 90px;
+            display: flex; align-items: center; padding: 0 20px; gap: 15px;
+            z-index: 200;
         }
 
         .glass-input {
-            flex: 1;
-            height: 45px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 15px;
+            flex: 1; height: 44px; background: rgba(255, 255, 255, 0.08);
+            border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Кнопка микрофона */
+        .mic-wrapper { position: relative; width: 50px; height: 50px; }
+
         .mic-btn {
-            width: 45px;
-            height: 45px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            touch-action: none;
+            width: 50px; height: 50px; background: #0088cc;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            position: absolute; bottom: 0; right: 0;
+            transition: transform 0.1s ease, background 0.3s ease, box-shadow 0.3s ease;
+            touch-action: none; z-index: 210;
         }
 
         .mic-btn.active {
             background: #ff3b30;
-            transform: scale(1.3);
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.5);
+            box-shadow: 0 0 30px rgba(255, 59, 48, 0.6);
         }
 
-        /* Индикатор записи */
-        .rec-hint {
-            position: absolute;
-            bottom: 70px;
-            right: 0;
-            padding: 8px 15px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 12px;
-            display: none;
-            white-space: nowrap;
+        .mic-btn svg { width: 24px; height: 24px; fill: white; }
+
+        /* Таймер записи */
+        #timer {
+            position: absolute; right: 70px; bottom: 15px;
+            font-size: 18px; font-weight: 500; display: none;
+            color: #ff3b30;
         }
+        body.recording-active #timer { display: block; }
 
-        .rec-hint.visible { display: block; animation: slideUp 0.3s ease; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } }
-
-        svg { fill: white; width: 22px; height: 22px; }
     </style>
 </head>
-<body>
+<body onclick="handleGlobalClick(event)">
 
     <div class="header">
-        <div class="user-info">
-            <div class="avatar"></div>
-            <div class="user-name">Солнышко</div>
-        </div>
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #333; margin-right: 12px;"></div>
+        <div style="font-weight: 600;">Чат</div>
     </div>
 
-    <div id="chat-area" onclick="nextMsg()">
-        </div>
+    <div id="chat-area"></div>
+
+    <div id="timer">0:00</div>
 
     <div class="input-area">
-        <div class="glass-input">Сообщение</div>
-        <div class="mic-btn" id="mic">
-            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            <div class="rec-hint" id="hint">0:01 • Свайп вверх для отмены</div>
+        <div class="glass-input"></div>
+        <div class="mic-wrapper">
+            <div class="mic-btn" id="mic">
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </div>
         </div>
     </div>
 
-    <script>
-        const messages = [
-            "Мы расстаемся…",
-            "Я так больше не могу",
-            "Прощай 💔"
-        ];
-        
-        let msgIdx = 0;
-        const chatArea = document.getElementById('chat-area');
-        const mic = document.getElementById('mic');
-        const hint = document.getElementById('hint');
+<script>
+    const messages = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
+    let mIdx = 0;
 
-        // Функция появления сообщений
-        function nextMsg() {
-            if (msgIdx >= messages.length) return;
-
-            const now = new Date();
-            const time = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-
+    function handleGlobalClick(e) {
+        if (e.target.closest('#mic')) return;
+        if (mIdx < messages.length) {
             const div = document.createElement('div');
             div.className = 'msg';
-            div.innerHTML = `${messages[msgIdx]} <span class="time">${time}</span>`;
-            
-            chatArea.appendChild(div);
-            msgIdx++;
-
-            if (window.navigator.vibrate) window.navigator.vibrate(15);
+            div.innerText = messages[mIdx++];
+            document.getElementById('chat-area').appendChild(div);
         }
+    }
 
-        // Логика микрофона (свайп вверх)
-        let startY = 0;
-        let isRecording = false;
+    const mic = document.getElementById('mic');
+    const body = document.body;
+    let audioCtx, analyser, dataArray, source;
 
-        mic.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            isRecording = true;
-            mic.classList.add('active');
-            hint.classList.add('visible');
-            if (window.navigator.vibrate) window.navigator.vibrate(30);
-        });
-
-        mic.addEventListener('touchmove', (e) => {
-            if (!isRecording) return;
-            let moveY = e.touches[0].clientY;
-            let diff = startY - moveY;
-            
-            if (diff > 100) { // Свайп вверх на 100px
-                cancelRec();
-            }
-        });
-
-        mic.addEventListener('touchend', cancelRec);
-
-        function cancelRec() {
-            isRecording = false;
-            mic.classList.remove('active');
-            hint.classList.remove('visible');
+    async function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            draw();
         }
+    }
 
-        // Пробел для теста на компе
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space') nextMsg(); });
-    </script>
+    function draw() {
+        if (!body.classList.contains('recording-active')) return;
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+        let sum = dataArray.reduce((a, b) => a + b, 0);
+        let average = sum / dataArray.length;
+        let scale = 1 + (average / 100); // Реакция на голос
+        mic.style.transform = `scale(${Math.max(1.2, Math.min(scale, 2.5))})`;
+    }
+
+    mic.addEventListener('touchstart', async (e) => {
+        e.preventDefault();
+        try { await initAudio(); } catch(e) { alert('Нужен доступ к микр!'); }
+        body.classList.add('recording-active');
+        mic.classList.add('active');
+        if (navigator.vibrate) navigator.vibrate(50);
+        startTimer();
+    });
+
+    mic.addEventListener('touchend', () => {
+        body.classList.remove('recording-active');
+        mic.classList.remove('active');
+        mic.style.transform = `scale(1)`;
+        stopTimer();
+    });
+
+    let seconds = 0;
+    let timerInterval;
+    function startTimer() {
+        seconds = 0;
+        timerInterval = setInterval(() => {
+            seconds++;
+            let m = Math.floor(seconds / 60);
+            let s = seconds % 60;
+            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }, 1000);
+    }
+    function stopTimer() { clearInterval(timerInterval); document.getElementById('timer').innerText = "0:00"; }
+</script>
 </body>
 </html>
