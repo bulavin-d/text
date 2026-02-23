@@ -3,63 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BULAVIN - FULL TEXT</title>
+    <title>BULAVIN - PREMIUM</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            background: #000 !important;
+            background: #000;
             color: #fff;
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding-top: 12vh; /* Оптимально для записи на фронталку или заднюю */
+            justify-content: center;
+            align-items: flex-start; /* Строго сверху */
+            padding-top: 15vh;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         #lyric-box {
-            width: 85%;
-            max-width: 320px;
+            width: 90%;
+            max-width: 330px; /* Идеально для iPhone */
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            text-align: left;
+            gap: 20px;
         }
 
         .line {
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
-            gap: 8px;
+            gap: 10px;
         }
 
         .word {
-            font-size: 24px; /* Чуть уменьшил, чтобы длинные строки точно не рвались */
+            display: flex;
+            font-size: 22px;
             font-style: italic;
             text-transform: uppercase;
-            letter-spacing: -1px;
-            opacity: 0;
-            transition: opacity 0.15s ease-in; /* Быстрое и чистое появление */
-            color: #fff;
+            perspective: 1000px; /* Глубина для букв */
         }
 
-        .word.visible {
+        .char {
+            display: inline-block;
+            opacity: 0;
+            transform: rotateX(-90deg) translateZ(20px); /* Начальное положение (разворот) */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .char.active {
             opacity: 1;
+            transform: rotateX(0deg) translateZ(0); /* Финальное положение */
         }
     </style>
 </head>
-<body onclick="trigger()">
+<body onclick="handleAction()">
 
 <div id="lyric-box"></div>
 
 <script>
-    const rawText = `Я уже по уши в лапше, открой мне душу киса
+    const text = `Я уже по уши в лапше, открой мне душу киса
 Я хочу засыпать спокойно, нахуй мне актрисы
 Я слепо верю в чистое, сам как монета чистая 
 Если захочешь меня ёбнуть, хоть налей игристого 
@@ -94,64 +97,74 @@
 Докажи мне, что не ошибался 
 Детка, параноику не больно обжигаться`;
 
-    // Разбиваем текст по ПУСТЫМ СТРОКАМ (двойной перенос)
-    const groups = rawText.split(/\n\n|\n \n/).map(g => g.split('\n').filter(l => l.trim() !== ''));
+    // Делим на блоки по пустым строкам
+    const blocks = text.trim().split(/\n\s*\n/);
+    let currentBlock = 0;
+    let currentWord = 0;
+    let wordsNodes = [];
 
-    const lyricBox = document.getElementById('lyric-box');
-    let groupIdx = 0;
-    let wordIdx = 0;
-    let currentWords = [];
+    const box = document.getElementById('lyric-box');
 
-    function render() {
-        lyricBox.innerHTML = '';
-        currentWords = [];
-        wordIdx = 0;
+    function renderBlock(index) {
+        box.innerHTML = ''; // ПОЛНАЯ ОЧИСТКА
+        wordsNodes = [];
+        currentWord = 0;
 
-        if (groupIdx >= groups.length) {
-            lyricBox.innerHTML = '<div class="line"><span class="word visible" style="font-size: 14px; opacity: 0.3;">END. TAP TO RESTART</span></div>';
-            groupIdx = -1; // Чтобы по клику началось заново
-            return;
-        }
+        if (index >= blocks.length) return;
 
-        groups[groupIdx].forEach(line => {
-            const div = document.createElement('div');
-            div.className = 'line';
-            line.trim().split(/\s+/).forEach(w => {
-                const span = document.createElement('span');
-                span.className = 'word';
-                span.innerText = w;
-                div.appendChild(span);
-                currentWords.push(span);
+        const lines = blocks[index].split('\n');
+        lines.forEach(lineText => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'line';
+            
+            lineText.trim().split(/\s+/).forEach(wordText => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word';
+                
+                // Разбиваем слово на буквы
+                [...wordText].forEach(char => {
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'char';
+                    charSpan.innerText = char;
+                    wordSpan.appendChild(charSpan);
+                });
+                
+                lineDiv.appendChild(wordSpan);
+                wordsNodes.push(wordSpan);
             });
-            lyricBox.appendChild(div);
+            box.appendChild(lineDiv);
         });
     }
 
-    function trigger() {
-        if (groupIdx === -1) {
-            groupIdx = 0;
-            render();
-            return;
-        }
-
-        if (wordIdx < currentWords.length) {
-            currentWords[wordIdx].classList.add('visible');
-            wordIdx++;
+    function handleAction() {
+        if (currentWord < wordsNodes.length) {
+            // Анимируем буквы внутри слова
+            const chars = wordsNodes[currentWord].querySelectorAll('.char');
+            chars.forEach((c, i) => {
+                setTimeout(() => c.classList.add('active'), i * 40); // Задержка между буквами
+            });
+            currentWord++;
         } else {
-            groupIdx++;
-            render();
+            // Переход к следующему блоку
+            currentBlock++;
+            if (currentBlock < blocks.length) {
+                renderBlock(currentBlock);
+            } else {
+                box.innerHTML = '<div style="font-size:12px; color:gray">FINISH.</div>';
+            }
         }
     }
 
+    // Слушаем пробел
     window.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
             e.preventDefault();
-            trigger();
+            handleAction();
         }
     });
 
-    // Инициализация
-    render();
+    // Стартуем
+    renderBlock(currentBlock);
 </script>
 </body>
 </html>
