@@ -3,132 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TG GLASS OVERLAY</title>
+    <title>LIQUID GLASS TG</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #000; /* Чистый черный для кеинга */
+            background: #000; /* Глубокий черный для монтажа */
             height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: center; /* Строго центр экрана */
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        #wrapper {
+        #container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             width: 90%;
-            max-width: 360px;
+            max-width: 340px;
+            /* Центрируем сам контейнер */
+            position: relative;
+            z-index: 10;
         }
 
-        .notif {
+        .notification {
             width: 100%;
-            background: rgba(255, 255, 255, 0.08);
-            /* Эффект глубокого стекла */
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            
-            /* Многослойная обводка */
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 
-                        0 10px 30px rgba(0, 0, 0, 0.4);
-            
+            position: relative;
             border-radius: 20px;
-            padding: 14px 16px;
-            color: white;
+            padding: 14px 18px;
+            color: #fff;
             
-            /* Анимация влета */
+            /* Эффект Liquid Glass */
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            
+            /* Двойная стеклянная обводка */
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 15px 35px rgba(0, 0, 0, 0.5);
+
+            /* Анимация Apple */
             opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            animation: appleIn 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+            transform: scale(0.9) translateY(30px);
+            animation: glassShow 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
 
-        @keyframes appleIn {
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes glassShow {
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
-            opacity: 0.6;
+            margin-bottom: 6px;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
+            gap: 8px;
+            font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            opacity: 0.6;
+            text-transform: uppercase;
         }
 
+        /* Тот самый стеклянный логотип */
         .brand svg {
             width: 16px;
             height: 16px;
             fill: #fff;
+            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
         }
 
-        .time { font-size: 11px; }
+        .time {
+            font-size: 11px;
+            opacity: 0.4;
+        }
 
-        .message {
+        .content {
             font-size: 16px;
             font-weight: 400;
-            line-height: 1.3;
-            letter-spacing: -0.2px;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
         }
     </style>
 </head>
-<body onclick="spawn()">
+<body onclick="addNotif()">
 
-<div id="wrapper"></div>
+<div id="container"></div>
 
 <script>
-    const data = [
+    const list = [
         "Мы расстаемся…",
         "Я так больше не могу",
         "Прощай 💔"
     ];
 
-    let idx = 0;
-    const wrapper = document.getElementById('wrapper');
+    let currentIdx = 0;
+    const container = document.getElementById('container');
 
-    function spawn() {
-        if (idx >= data.length) return;
+    function addNotif() {
+        if (currentIdx >= list.length) return;
 
-        const div = document.createElement('div');
-        div.className = 'notif';
+        const el = document.createElement('div');
+        el.className = 'notification';
         
         const now = new Date();
-        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + 
-                        now.getMinutes().toString().padStart(2, '0');
+        const t = now.getHours().toString().padStart(2, '0') + ":" + 
+                  now.getMinutes().toString().padStart(2, '0');
 
-        div.innerHTML = `
+        el.innerHTML = `
             <div class="header">
                 <div class="brand">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.2z"/></svg>
                     TELEGRAM
                 </div>
-                <div class="time">${timeStr}</div>
+                <div class="time">${t}</div>
             </div>
-            <div class="message">${data[idx]}</div>
+            <div class="content">${list[currentIdx]}</div>
         `;
 
-        wrapper.appendChild(div);
-        idx++;
+        container.appendChild(el);
+        currentIdx++;
+        
+        // Легкая вибрация при появлении
+        if (navigator.vibrate) navigator.vibrate(15);
     }
 
-    // Управление пробелом
+    // Пробел для компа
     window.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
             e.preventDefault();
-            spawn();
+            addNotif();
         }
     });
 </script>
