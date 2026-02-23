@@ -3,170 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TG PREMIUM FINAL</title>
+    <title>TG Glass Ultimate</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background: #000;
             height: 100dvh;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
             color: white;
             overflow: hidden;
         }
 
-        /* Глобальный блюр при записи */
-        body.recording #chat-area, body.recording .header, body.recording .input-glass {
-            filter: blur(20px) saturate(1.5);
-            opacity: 0.4;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Фоновый паттерн как на скринах */
+        .bg-pattern {
+            position: absolute; width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.1; pointer-events: none;
         }
 
         .header {
-            height: 60px; padding: 0 20px;
+            height: 60px; padding: 0 16px;
             display: flex; align-items: center;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(25px);
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
             z-index: 100;
         }
 
-        /* Чат: растет снизу */
+        /* Чат зона: сообщения растут снизу */
         #chat-area {
-            flex: 1; padding: 20px;
-            display: flex; flex-direction: column-reverse;
-            gap: 12px; overflow-y: auto;
-            mask-image: linear-gradient(to top, black 90%, transparent 100%);
+            flex: 1; padding: 16px;
+            display: flex; flex-direction: column;
+            justify-content: flex-end; /* Всегда снизу */
+            gap: 8px; overflow-y: auto;
+            position: relative; z-index: 10;
         }
 
-        /* Сообщение в стиле TG */
+        /* Пузырек сообщения */
         .msg {
-            max-width: 78%; align-self: flex-start;
+            max-width: 75%; padding: 8px 12px 6px 14px;
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(40px) saturate(180%);
-            padding: 8px 14px 6px 14px;
-            border-radius: 18px 18px 18px 5px;
-            position: relative;
-            border: 0.5px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            animation: msgShow 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px 18px 18px 4px;
+            position: relative; align-self: flex-start;
+            animation: msgPop 0.3s cubic-bezier(0.1, 0.9, 0.2, 1.1);
         }
 
-        /* Изящный хвост */
-        .msg::before {
-            content: ''; position: absolute; left: -5px; bottom: 0;
-            width: 10px; height: 10px;
+        /* Тот самый "хвостик" из скрина */
+        .msg::after {
+            content: ""; position: absolute;
+            left: -8px; bottom: 0;
+            width: 15px; height: 15px;
             background: inherit;
-            clip-path: radial-gradient(circle at 0 0, transparent 70%, black 72%);
-            transform: scaleX(-1);
+            mask-image: url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 15 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 15H0C0 15 8.5 15 11.5 10C13 7.5 15 0 15 0V15Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 15 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 15H0C0 15 8.5 15 11.5 10C13 7.5 15 0 15 0V15Z' fill='black'/%3E%3C/svg%3E");
+            mask-size: contain; -webkit-mask-size: contain;
         }
 
-        @keyframes msgShow { from { opacity: 0; transform: translateY(20px) scale(0.9); } }
+        @keyframes msgPop { from { opacity: 0; transform: scale(0.9) translateY(10px); } }
 
-        .msg-text { font-size: 16px; line-height: 1.4; }
-        .msg-time { font-size: 11px; opacity: 0.5; float: right; margin-top: 6px; margin-left: 10px; }
+        .msg-text { font-size: 16px; line-height: 1.4; padding-right: 40px; }
+        .msg-time { font-size: 11px; opacity: 0.5; position: absolute; right: 10px; bottom: 6px; }
 
+        /* Футер */
         .footer {
-            height: 90px; padding: 0 15px;
-            display: flex; align-items: center; gap: 12px;
-            background: rgba(0, 0, 0, 0.5);
+            height: 80px; padding: 0 12px;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(15, 15, 15, 0.9);
             backdrop-filter: blur(30px);
             border-top: 0.5px solid rgba(255, 255, 255, 0.1);
-            z-index: 200;
+            z-index: 200; position: relative;
         }
 
-        .input-glass {
-            flex: 1; height: 44px;
-            background: rgba(255, 255, 255, 0.07);
-            border-radius: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .input-box {
+            flex: 1; height: 42px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 21px; border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex; align-items: center; padding: 0 15px;
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.4); font-size: 16px;
+            position: relative;
         }
 
-        /* Микрофон и Голосовая Материя */
-        .mic-wrap { position: relative; width: 52px; height: 52px; }
-
+        /* Звуковая материя вокруг микрофона */
+        .mic-container { position: relative; width: 50px; height: 50px; }
+        
         .mic-btn {
-            width: 52px; height: 52px;
-            background: #0088cc;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            position: relative; z-index: 210;
-            transition: background 0.3s, transform 0.1s linear;
-            touch-action: none;
+            width: 50px; height: 50px; background: #0088cc;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 10; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .mic-btn.active { background: #ff3b30; }
 
-        /* Эффект материи (волна) */
-        .matter {
+        .matter-wave {
             position: absolute; top: 50%; left: 50%;
-            width: 52px; height: 52px;
-            background: rgba(255, 59, 48, 0.5);
-            border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(255, 59, 48, 0.3);
             transform: translate(-50%, -50%);
-            filter: blur(15px);
-            display: none; pointer-events: none;
-        }
-        body.recording .matter { display: block; animation: pulseMatter 2s infinite; }
-
-        @keyframes pulseMatter {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-            50% { transform: translate(-50%, -50%) scale(2.5); opacity: 0.2; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            pointer-events: none; display: none;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.5);
         }
 
-        #timer {
-            position: absolute; right: 85px; bottom: 35px;
-            font-size: 20px; font-weight: 600; color: #ff3b30;
-            display: none; text-shadow: 0 0 20px rgba(255, 59, 48, 0.5);
+        .mic-btn.locked + .matter-wave {
+            display: block; animation: liquidMatter 2s infinite ease-out;
         }
-        body.recording #timer { display: block; }
+
+        @keyframes liquidMatter {
+            0% { width: 50px; height: 50px; opacity: 0.8; }
+            50% { width: 130px; height: 130px; opacity: 0.3; }
+            100% { width: 180px; height: 180px; opacity: 0; }
+        }
+
+        /* Таймер записи */
+        #rec-ui {
+            position: absolute; left: 60px; bottom: 30px;
+            display: none; align-items: center; gap: 8px;
+            color: #ff3b30; font-weight: 600; font-size: 18px;
+            z-index: 150;
+        }
+        body.recording #rec-ui { display: flex; }
+        body.recording #chat-area { filter: blur(15px); opacity: 0.3; }
 
         svg { fill: white; width: 26px; height: 26px; }
     </style>
 </head>
-<body onclick="handleGlobalClick(event)">
+<body onclick="spawn(event)">
+
+    <div class="bg-pattern"></div>
 
     <div class="header">
-        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(45deg, #ff9a9e, #fad0c4); margin-right: 12px;"></div>
-        <div>
-            <div style="font-weight: 600;">Солнышко</div>
-            <div style="font-size: 12px; opacity: 0.5;">в сети</div>
-        </div>
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #ffb3ba; margin-right: 12px;"></div>
+        <div style="font-weight: 600;">Солнышко</div>
     </div>
 
-    <div id="chat-area"></div>
+    <div id="chat-area">
+        </div>
 
-    <div id="timer">0:00</div>
+    <div id="rec-ui">
+        <div style="width: 10px; height: 10px; background: #ff3b30; border-radius: 50%; animation: pulse 1s infinite;"></div>
+        <span id="timer">0:01</span>
+        <span style="margin-left: 20px; color: #0088cc; font-weight: 400; font-size: 16px;">Отмена</span>
+    </div>
 
     <div class="footer">
-        <svg viewBox="0 0 24 24" style="opacity: 0.5;"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.48-2.02-4.5-4.5-4.5S6 2.52 6 5v12.5c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-1.5z"/></svg>
-        <div class="input-glass">Сообщение</div>
-        <div class="mic-wrap">
+        <svg viewBox="0 0 24 24" style="opacity: 0.6;"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.48-2.02-4.5-4.5-4.5S6 2.52 6 5v12.5c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-1.5z"/></svg>
+        
+        <div class="input-box">
+            Сообщение
+            <svg viewBox="0 0 24 24" style="position: absolute; right: 12px; width: 22px; opacity: 0.5;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
+        </div>
+
+        <div class="mic-container">
             <div class="mic-btn" id="mic">
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
             </div>
-            <div class="matter"></div>
+            <div class="matter-wave"></div>
         </div>
     </div>
 
 <script>
-    const msgs = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
-    let mIdx = 0;
+    const script = ["Мы расстаемся…", "Я так больше не могу", "Прощай 💔"];
+    let step = 0;
 
-    function handleGlobalClick(e) {
-        if (e.target.closest('.mic-wrap') || mIdx >= msgs.length) return;
+    function spawn(e) {
+        if (e.target.closest('.footer') || step >= script.length) return;
         const now = new Date();
-        const time = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        const t = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
         const div = document.createElement('div');
         div.className = 'msg';
-        div.innerHTML = `<div class="msg-text">${msgs[mIdx++]}</div><div class="msg-time">${time}</div>`;
-        document.getElementById('chat-area').prepend(div);
+        div.innerHTML = `<div class="msg-text">${script[step++]}</div><div class="msg-time">${t}</div>`;
+        document.getElementById('chat-area').appendChild(div);
         if (navigator.vibrate) navigator.vibrate(10);
     }
 
@@ -174,36 +186,11 @@
     const body = document.body;
     let startY = 0;
     let isLocked = false;
-    let tInterval;
-    let audioCtx, analyser, dataArray;
+    let timer;
 
-    async function initVoice() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const source = audioCtx.createMediaStreamSource(stream);
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 64;
-            source.connect(analyser);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            renderVoice();
-        }
-    }
-
-    function renderVoice() {
-        if (!body.classList.contains('recording')) return;
-        requestAnimationFrame(renderVoice);
-        analyser.getByteFrequencyData(dataArray);
-        let sum = dataArray.reduce((a, b) => a + b, 0);
-        let vol = sum / dataArray.length;
-        let scale = 1.1 + (vol / 60);
-        mic.style.transform = `scale(${Math.min(scale, 1.8)})`;
-    }
-
-    mic.addEventListener('touchstart', async (e) => {
+    mic.addEventListener('touchstart', (e) => {
         if (isLocked) return;
         startY = e.touches[0].clientY;
-        try { await initVoice(); } catch(err) {}
         body.classList.add('recording');
         mic.classList.add('active');
         startTimer();
@@ -211,9 +198,9 @@
 
     mic.addEventListener('touchmove', (e) => {
         if (isLocked) return;
-        let delta = startY - e.touches[0].clientY;
-        if (delta > 70) {
+        if (startY - e.touches[0].clientY > 60) {
             isLocked = true;
+            mic.classList.add('locked');
             if (navigator.vibrate) navigator.vibrate([20, 50]);
         }
     });
@@ -224,22 +211,23 @@
     function stopRec() {
         isLocked = false;
         body.classList.remove('recording');
-        mic.classList.remove('active');
-        mic.style.transform = 'scale(1)';
-        clearInterval(tInterval);
-        document.getElementById('timer').innerText = "0:00";
+        mic.classList.remove('active', 'locked');
+        clearInterval(timer);
+        document.getElementById('timer').innerText = "0:01";
     }
 
     function startTimer() {
-        let sec = 0;
-        clearInterval(tInterval);
-        tInterval = setInterval(() => {
-            sec++;
-            let m = Math.floor(sec / 60);
-            let s = sec % 60;
-            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        let s = 1;
+        clearInterval(timer);
+        timer = setInterval(() => {
+            s++;
+            let m = Math.floor(s/60);
+            let sec = s%60;
+            document.getElementById('timer').innerText = `${m}:${sec < 10 ? '0' : ''}${sec}`;
         }, 1000);
     }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 </script>
 </body>
 </html>
