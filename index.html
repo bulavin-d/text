@@ -2,111 +2,223 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мои Дни</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>10k Target</title>
     <style>
+        /* Базовый сброс и системные шрифты Apple */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #ffffff;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #333;
+            overflow: hidden;
+            /* Учет челки iPhone */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+
+        /* Canvas на фоне */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Эффект Black Liquid Glass */
+        .glass-card {
+            position: relative;
+            z-index: 1;
+            width: 88%;
+            max-width: 380px;
+            padding: 40px 30px;
+            border-radius: 32px;
+            background: rgba(20, 20, 20, 0.45);
+            /* Блюр фона (Apple style) */
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            /* Тонкая рамка для имитации блика стекла */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             text-align: center;
-            max-width: 350px;
-            width: 90%;
-            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
-        h1 {
-            font-size: 20px;
-            color: #555;
-            margin-bottom: 5px;
-            font-weight: normal;
+
+        .header h1 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0 0 8px 0;
+            font-weight: 500;
         }
+
         .days-alive {
-            font-size: 56px;
-            font-weight: bold;
-            color: #a18cd1;
-            margin: 0 0 10px 0;
-            line-height: 1;
+            font-size: 64px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .streak {
-            font-size: 16px;
-            color: #777;
-            margin-bottom: 30px;
+
+        /* Блок прогресса до 10 000 дней */
+        .progress-container {
+            text-align: left;
+            margin-top: 10px;
         }
-        .streak-count {
-            font-weight: bold;
-            color: #f68084;
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
         }
-        button {
-            background: #a18cd1;
-            color: white;
-            border: none;
-            padding: 16px 32px;
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* Блок стрик-счетчика */
+        .streak-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            margin: 0 auto;
+        }
+        .streak-icon {
             font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
+            margin-right: 8px;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        .streak-text {
+            font-size: 15px;
+            color: #eee;
+        }
+
+        /* Премиальная кнопка */
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 18px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             width: 100%;
-            box-shadow: 0 4px 15px rgba(161, 140, 209, 0.4);
+            backdrop-filter: blur(10px);
+            margin-top: 10px;
         }
-        button:hover {
-            background: #8e75c4;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(161, 140, 209, 0.6);
+        button:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.15);
         }
         button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: default;
             transform: none;
-            box-shadow: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>Я живу уже</h1>
-        <div class="days-alive" id="daysAlive">0</div>
-        <div class="streak">
-            Дней подряд: <span class="streak-count" id="streakCount">0</span> 🔥
+    <canvas id="bg-canvas"></canvas>
+
+    <main class="glass-card">
+        <div class="header">
+            <h1>Мой путь</h1>
+            <div class="days-alive" id="daysAlive">0</div>
         </div>
-        <button id="checkInBtn" onclick="checkIn()">Отметиться сегодня</button>
-    </div>
+
+        <div class="progress-container">
+            <div class="progress-header">
+                <span>Прогресс до 10 000</span>
+                <span id="percentComplete">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="streak-container">
+            <span class="streak-icon">🔥</span>
+            <span class="streak-text">Дней подряд: <strong id="streakCount">0</strong></span>
+        </div>
+
+        <button id="checkInBtn" onclick="checkIn()">Отметить день</button>
+    </main>
 
     <script>
-        // Дата рождения: 10 февраля 2003 (месяцы в JS начинаются с 0, поэтому 1 = февраль)
-        const dob = new Date(2003, 1, 10);
+        // --- Логика подсчета дней ---
+        const dob = new Date(2003, 1, 10); // 10 февраля 2003
+        const targetDays = 10000;
         
-        // Элементы интерфейса
         const daysAliveEl = document.getElementById('daysAlive');
         const streakCountEl = document.getElementById('streakCount');
         const checkInBtn = document.getElementById('checkInBtn');
+        const progressFillEl = document.getElementById('progressFill');
+        const percentCompleteEl = document.getElementById('percentComplete');
 
-        // Функция обнуления времени для точного подсчета дней
         function getMidnight(date) {
             return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
         }
 
-        // Подсчет прожитых дней
+        let currentDaysAlive = 0;
+
         function updateDaysAlive() {
             const today = new Date();
             const diffTime = getMidnight(today) - getMidnight(dob);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            daysAliveEl.textContent = diffDays;
+            currentDaysAlive = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            daysAliveEl.textContent = currentDaysAlive;
+
+            // Обновляем прогресс-бар
+            let percent = ((currentDaysAlive / targetDays) * 100).toFixed(2);
+            if (percent > 100) percent = 100;
+            
+            // Анимация заполнения после загрузки
+            setTimeout(() => {
+                progressFillEl.style.width = percent + '%';
+                percentCompleteEl.textContent = percent + '%';
+            }, 100);
         }
 
-        // Обновление интерфейса серии кликов (стрика)
+        // --- Логика LocalStorage (Стрик) ---
         function updateStreakUI() {
             let streak = parseInt(localStorage.getItem('myStreak')) || 0;
             let lastVisit = localStorage.getItem('lastVisitDate');
@@ -115,16 +227,20 @@
             streakCountEl.textContent = streak;
 
             if (lastVisit === todayStr) {
-                checkInBtn.textContent = "Вы уже отметились!";
+                checkInBtn.textContent = "День засчитан ✓";
                 checkInBtn.disabled = true;
             } else {
-                checkInBtn.textContent = "Отметиться сегодня";
+                checkInBtn.textContent = "Отметить день";
                 checkInBtn.disabled = false;
             }
         }
 
-        // Логика кнопки "Отметиться"
         function checkIn() {
+            // Виброотклик для iOS/Android
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
             let streak = parseInt(localStorage.getItem('myStreak')) || 0;
             let lastVisit = localStorage.getItem('lastVisitDate');
             let today = new Date();
@@ -136,12 +252,12 @@
                     let dayDiff = Math.floor((getMidnight(today) - getMidnight(lastDate)) / (1000 * 60 * 60 * 24));
                     
                     if (dayDiff === 1) {
-                        streak++; // Если зашли на следующий день, увеличиваем серию
+                        streak++; 
                     } else if (dayDiff > 1) {
-                        streak = 1; // Если пропустили день, сбрасываем счетчик
+                        streak = 1; 
                     }
                 } else {
-                    streak = 1; // Первый в истории клик
+                    streak = 1; 
                 }
 
                 localStorage.setItem('myStreak', streak);
@@ -150,9 +266,57 @@
             }
         }
 
-        // Запуск при загрузке
+        // --- Анимация Canvas (Фоновые сферы) ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Настройки сфер
+        const orbs = [
+            { x: width * 0.2, y: height * 0.3, r: 150, vx: 0.3, vy: -0.2, color: 'rgba(79, 172, 254, 0.15)' },
+            { x: width * 0.8, y: height * 0.7, r: 200, vx: -0.4, vy: 0.3, color: 'rgba(0, 242, 254, 0.15)' },
+            { x: width * 0.5, y: height * 0.5, r: 250, vx: 0.2, vy: 0.2, color: 'rgba(161, 140, 209, 0.1)' }
+        ];
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            orbs.forEach(orb => {
+                // Движение
+                orb.x += orb.vx;
+                orb.y += orb.vy;
+
+                // Отскок от краев
+                if (orb.x - orb.r > width || orb.x + orb.r < 0) orb.vx *= -1;
+                if (orb.y - orb.r > height || orb.y + orb.r < 0) orb.vy *= -1;
+
+                // Отрисовка с мягким градиентом
+                const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
+                gradient.addColorStop(0, orb.color);
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        // Запуск
         updateDaysAlive();
         updateStreakUI();
+        draw();
     </script>
 </body>
 </html>
