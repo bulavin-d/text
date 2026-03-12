@@ -5,318 +5,470 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
-    <title>10k Target</title>
+    <meta name="theme-color" content="#09090b">
+    <title>LEVEL UP</title>
     <style>
-        /* Базовый сброс и системные шрифты Apple */
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --bg: #09090b;
+            --surface: rgba(24, 24, 27, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.4);
+            --success: #10b981;
+            --rad: 24px;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #050505;
-            color: #ffffff;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            /* Учет челки iPhone */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main);
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; padding-top: max(env(safe-area-inset-top), 20px);
+            padding-bottom: max(env(safe-area-inset-bottom), 20px);
         }
 
-        /* Canvas на фоне */
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+        /* Canvas Background */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.6; pointer-events: none; }
+
+        .container {
+            position: relative; z-index: 1; width: 92%; max-width: 420px;
+            display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px;
         }
 
-        /* Эффект Black Liquid Glass */
-        .glass-card {
-            position: relative;
-            z-index: 1;
-            width: 88%;
-            max-width: 380px;
-            padding: 40px 30px;
-            border-radius: 32px;
-            background: rgba(20, 20, 20, 0.45);
-            /* Блюр фона (Apple style) */
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            /* Тонкая рамка для имитации блика стекла */
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+        /* Glass Cards */
+        .card {
+            background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: var(--rad); padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
-        .header h1 {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.5);
-            margin: 0 0 8px 0;
-            font-weight: 500;
+        /* Header & Level */
+        .header { text-align: center; }
+        .greeting { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; font-weight: 600; }
+        .level-container { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+        .level-text { font-size: 24px; color: var(--text-muted); font-weight: 700; }
+        .level-num { font-size: 72px; font-weight: 900; letter-spacing: -2px; line-height: 1;
+            background: linear-gradient(135deg, #fff 0%, #71717a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .days-alive {
-            font-size: 64px;
-            font-weight: 800;
-            letter-spacing: -2px;
-            margin: 0;
-            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* Main Action Button */
+        .awaken-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%); border: none; color: white;
+            padding: 20px; font-size: 18px; font-weight: 700; border-radius: 20px; width: 100%;
+            cursor: pointer; box-shadow: 0 10px 30px var(--accent-glow); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase; letter-spacing: 1px; position: relative; overflow: hidden;
         }
+        .awaken-btn:active { transform: scale(0.96); }
+        .awaken-btn.done { background: var(--surface); box-shadow: none; border: 1px solid var(--border); color: var(--success); cursor: default; }
 
-        /* Блок прогресса до 10 000 дней */
-        .progress-container {
-            text-align: left;
-            margin-top: 10px;
-        }
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 8px;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-            border-radius: 10px;
-            width: 0%;
-            transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
+        /* Streak & Activity Graph */
+        .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .streak-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 16px; }
+        #streakIcon { font-size: 20px; transition: text-shadow 0.3s ease; }
+        
+        .activity-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .day-box { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); transition: all 0.5s ease; }
+        .day-box.active { background: var(--success); box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
 
-        /* Блок стрик-счетчика */
-        .streak-container {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            margin: 0 auto;
-        }
-        .streak-icon {
-            font-size: 18px;
-            margin-right: 8px;
-            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-        }
-        .streak-text {
-            font-size: 15px;
-            color: #eee;
-        }
+        /* Quests System */
+        .section-title { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; font-weight: 600; display: flex; justify-content: space-between;}
+        .quest-list { display: flex; flex-direction: column; gap: 12px; }
+        .quest-item { display: flex; align-items: center; gap: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; border: 1px solid transparent; transition: all 0.2s ease; }
+        .quest-item.completed { opacity: 0.5; border-color: rgba(16, 185, 129, 0.2); }
+        .quest-item.completed .quest-text { text-decoration: line-through; color: var(--text-muted); }
+        .checkbox { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--text-muted); display: flex; justify-content: center; align-items: center; transition: all 0.2s; cursor: pointer; }
+        .quest-item.completed .checkbox { background: var(--success); border-color: var(--success); }
+        .checkbox::after { content: '✓'; color: #000; font-weight: bold; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .quest-item.completed .checkbox::after { opacity: 1; }
+        .quest-text { font-size: 15px; font-weight: 500; flex-grow: 1; transition: all 0.2s; }
 
-        /* Премиальная кнопка */
-        button {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 18px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            backdrop-filter: blur(10px);
-            margin-top: 10px;
-        }
-        button:active {
-            transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.15);
-        }
-        button:disabled {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.3);
-            cursor: default;
-            transform: none;
-        }
+        /* Daily Quote */
+        .quote-box { text-align: center; font-style: italic; color: var(--text-muted); font-size: 15px; line-height: 1.5; padding: 10px; }
+        .quote-author { display: block; margin-top: 8px; font-weight: 600; font-size: 12px; font-style: normal; color: #71717a; text-transform: uppercase; }
+
+        /* Energy Bar */
+        .energy-wrap { height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .energy-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #f59e0b, #ef4444); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <canvas id="bg-canvas"></canvas>
 
-    <main class="glass-card">
-        <div class="header">
-            <h1>Мой путь</h1>
-            <div class="days-alive" id="daysAlive">0</div>
-        </div>
-
-        <div class="progress-container">
-            <div class="progress-header">
-                <span>Прогресс до 10 000</span>
-                <span id="percentComplete">0%</span>
+    <div class="container">
+        <div class="card header">
+            <div class="greeting" id="greetingText">Загрузка...</div>
+            <div class="level-container">
+                <span class="level-text">LVL</span>
+                <span class="level-num" id="levelNum">0</span>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+            <div style="margin-top: 20px; text-align: left;">
+                <div class="section-title" style="margin-bottom: 8px;">
+                    <span>Энергия дня</span>
+                    <span id="energyText">0%</span>
+                </div>
+                <div class="energy-wrap">
+                    <div class="energy-fill" id="energyFill"></div>
+                </div>
             </div>
         </div>
 
-        <div class="streak-container">
-            <span class="streak-icon">🔥</span>
-            <span class="streak-text">Дней подряд: <strong id="streakCount">0</strong></span>
+        <button class="awaken-btn" id="awakenBtn" onclick="app.awaken()">Инициализация дня</button>
+
+        <div class="card">
+            <div class="stats-row">
+                <div class="section-title" style="margin: 0;">Матрица активности</div>
+                <div class="streak-badge">
+                    <span id="streakIcon">🔥</span>
+                    <span id="streakCount">0</span>
+                </div>
+            </div>
+            <div class="activity-grid" id="activityGrid">
+                </div>
         </div>
 
-        <button id="checkInBtn" onclick="checkIn()">Отметить день</button>
-    </main>
+        <div class="card">
+            <div class="section-title">Микро-квесты на сегодня</div>
+            <div class="quest-list" id="questList">
+                </div>
+        </div>
+
+        <div class="card">
+            <div class="quote-box">
+                <span id="quoteText">"Загрузка мудрости..."</span>
+                <span class="quote-author" id="quoteAuthor">Система</span>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- Логика подсчета дней ---
-        const dob = new Date(2003, 1, 10); // 10 февраля 2003
-        const targetDays = 10000;
+        // --- БАЗА ДАННЫХ ---
+        const DOB = new Date(2003, 1, 10);
         
-        const daysAliveEl = document.getElementById('daysAlive');
-        const streakCountEl = document.getElementById('streakCount');
-        const checkInBtn = document.getElementById('checkInBtn');
-        const progressFillEl = document.getElementById('progressFill');
-        const percentCompleteEl = document.getElementById('percentComplete');
-
-        function getMidnight(date) {
-            return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-        }
-
-        let currentDaysAlive = 0;
-
-        function updateDaysAlive() {
-            const today = new Date();
-            const diffTime = getMidnight(today) - getMidnight(dob);
-            currentDaysAlive = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            daysAliveEl.textContent = currentDaysAlive;
-
-            // Обновляем прогресс-бар
-            let percent = ((currentDaysAlive / targetDays) * 100).toFixed(2);
-            if (percent > 100) percent = 100;
-            
-            // Анимация заполнения после загрузки
-            setTimeout(() => {
-                progressFillEl.style.width = percent + '%';
-                percentCompleteEl.textContent = percent + '%';
-            }, 100);
-        }
-
-        // --- Логика LocalStorage (Стрик) ---
-        function updateStreakUI() {
-            let streak = parseInt(localStorage.getItem('myStreak')) || 0;
-            let lastVisit = localStorage.getItem('lastVisitDate');
-            let todayStr = new Date().toDateString();
-
-            streakCountEl.textContent = streak;
-
-            if (lastVisit === todayStr) {
-                checkInBtn.textContent = "День засчитан ✓";
-                checkInBtn.disabled = true;
-            } else {
-                checkInBtn.textContent = "Отметить день";
-                checkInBtn.disabled = false;
-            }
-        }
-
-        function checkIn() {
-            // Виброотклик для iOS/Android
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-
-            let streak = parseInt(localStorage.getItem('myStreak')) || 0;
-            let lastVisit = localStorage.getItem('lastVisitDate');
-            let today = new Date();
-            let todayStr = today.toDateString();
-
-            if (lastVisit !== todayStr) {
-                if (lastVisit) {
-                    let lastDate = new Date(lastVisit);
-                    let dayDiff = Math.floor((getMidnight(today) - getMidnight(lastDate)) / (1000 * 60 * 60 * 24));
-                    
-                    if (dayDiff === 1) {
-                        streak++; 
-                    } else if (dayDiff > 1) {
-                        streak = 1; 
-                    }
-                } else {
-                    streak = 1; 
-                }
-
-                localStorage.setItem('myStreak', streak);
-                localStorage.setItem('lastVisitDate', todayStr);
-                updateStreakUI();
-            }
-        }
-
-        // --- Анимация Canvas (Фоновые сферы) ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-
-        function resizeCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Настройки сфер
-        const orbs = [
-            { x: width * 0.2, y: height * 0.3, r: 150, vx: 0.3, vy: -0.2, color: 'rgba(79, 172, 254, 0.15)' },
-            { x: width * 0.8, y: height * 0.7, r: 200, vx: -0.4, vy: 0.3, color: 'rgba(0, 242, 254, 0.15)' },
-            { x: width * 0.5, y: height * 0.5, r: 250, vx: 0.2, vy: 0.2, color: 'rgba(161, 140, 209, 0.1)' }
+        const QUOTES = [
+            { t: "Не молись о легкой жизни. Молись о силах выдержать трудную.", a: "Брюс Ли" },
+            { t: "То, что стоит на пути, становится путем.", a: "Марк Аврелий" },
+            { t: "Дисциплина — это решение делать то, чего ты не хочешь делать, чтобы достичь того, чего ты очень хочешь.", a: "Дэвид Гоггинс" },
+            { t: "Твои оправдания никому не интересны, кроме твоей лени.", a: "Неизвестный" },
+            { t: "Победа любит подготовку.", a: "Латинская пословица" },
+            { t: "Сложные времена рождают сильных людей.", a: "Д. Майкл Хопф" },
+            { t: "Мы то, что мы постоянно делаем. Совершенство — это не действие, а привычка.", a: "Аристотель" }
         ];
 
-        function draw() {
-            ctx.clearRect(0, 0, width, height);
-            
-            orbs.forEach(orb => {
-                // Движение
-                orb.x += orb.vx;
-                orb.y += orb.vy;
+        const QUEST_POOL = [
+            "Выпить большой стакан воды", "Сделать 15 отжиманий", "10 минут без телефона в тишине",
+            "Сделать зарядку/растяжку (5 мин)", "Убрать рабочее место", "Прочитать 10 страниц любой книги",
+            "Выйти на короткую прогулку", "Написать план на завтра", "Сделать 20 приседаний",
+            "Ответить на зависшее сообщение", "Проветрить комнату", "Сделать комплимент кому-то (или себе)"
+        ];
 
-                // Отскок от краев
-                if (orb.x - orb.r > width || orb.x + orb.r < 0) orb.vx *= -1;
-                if (orb.y - orb.r > height || orb.y + orb.r < 0) orb.vy *= -1;
+        // --- CORE APP LOGIC ---
+        const app = {
+            state: {
+                streak: 0,
+                lastVisit: null,
+                history: [], // Массив дат [ "2023-10-01", ... ] за последние 28 дней
+                todayEnergy: 0,
+                quests: [],
+                quoteObj: null
+            },
 
-                // Отрисовка с мягким градиентом
-                const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
-                gradient.addColorStop(0, orb.color);
-                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            init() {
+                this.loadState();
+                this.checkNewDay();
+                this.renderAll();
+                canvasEngine.init();
+            },
+
+            loadState() {
+                const saved = localStorage.getItem('levelUpState');
+                if (saved) {
+                    this.state = JSON.parse(saved);
+                    // Валидация истории (оставляем только последние 28 дней)
+                    if(!this.state.history) this.state.history = [];
+                }
+            },
+
+            saveState() {
+                localStorage.setItem('levelUpState', JSON.stringify(this.state));
+            },
+
+            getTodayStr() {
+                // Локальная дата в формате YYYY-MM-DD
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            },
+
+            getMidnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); },
+
+            checkNewDay() {
+                const todayStr = this.getTodayStr();
+                const todayTime = this.getMidnight(new Date());
+
+                if (this.state.lastVisit !== todayStr) {
+                    // Обработка стрик-логики
+                    if (this.state.lastVisit) {
+                        const lastTime = this.getMidnight(new Date(this.state.lastVisit));
+                        const diffDays = Math.floor((todayTime - lastTime) / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays === 1 && this.state.todayEnergy > 0) {
+                            // Если вчера заходил и хотя бы нажал кнопку - стрик сохраняется
+                            // Не делаем ничего, стрик апнется при нажатии кнопки сегодня
+                        } else if (diffDays > 1 || this.state.todayEnergy === 0) {
+                            this.state.streak = 0; // Проебал день или вчера не нажал кнопку
+                        }
+                    }
+
+                    // Сброс дневных показателей
+                    this.state.todayEnergy = 0;
+                    this.generateDailyContent();
+                    this.saveState();
+                }
+            },
+
+            generateDailyContent() {
+                // Рандомная цитата
+                this.state.quoteObj = QUOTES[Math.floor(Math.random() * QUOTES.length)];
                 
-                ctx.beginPath();
-                ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-            });
+                // Рандомные 3 квеста
+                const shuffled = [...QUEST_POOL].sort(() => 0.5 - Math.random());
+                this.state.quests = shuffled.slice(0, 3).map(q => ({ text: q, done: false }));
+            },
 
-            requestAnimationFrame(draw);
-        }
+            // Действие пользователя: Нажатие главной кнопки
+            awaken() {
+                const todayStr = this.getTodayStr();
+                
+                if (this.state.todayEnergy === 0) {
+                    this.vibrate([30, 50, 30]); // Двойной haptic
+                    this.state.todayEnergy += 40; // Даем 40% за вход
+                    
+                    // Увеличиваем стрик
+                    this.state.streak += 1;
+                    this.state.lastVisit = todayStr;
+                    
+                    // Добавляем в историю
+                    if (!this.state.history.includes(todayStr)) {
+                        this.state.history.push(todayStr);
+                        if (this.state.history.length > 28) this.state.history.shift(); // Храним только 28 дней
+                    }
 
-        // Запуск
-        updateDaysAlive();
-        updateStreakUI();
-        draw();
+                    canvasEngine.burst(); // Визуальный взрыв
+                    this.saveState();
+                    this.renderAll();
+                }
+            },
+
+            // Действие пользователя: Выполнение квеста
+            toggleQuest(index) {
+                if (this.state.todayEnergy === 0) return; // Сначала нужно "Проснуться"
+
+                const q = this.state.quests[index];
+                q.done = !q.done;
+                
+                this.vibrate(20);
+                
+                // Пересчет энергии (40% за вход + по 20% за каждый квест = 100%)
+                let energy = 40;
+                this.state.quests.forEach(quest => { if(quest.done) energy += 20; });
+                this.state.todayEnergy = energy;
+
+                if (energy === 100 && q.done) canvasEngine.burst();
+
+                this.saveState();
+                this.renderEnergy();
+                this.renderQuests();
+            },
+
+            vibrate(pattern) {
+                if (navigator.vibrate) navigator.vibrate(pattern);
+            },
+
+            // --- RENDER ФУНКЦИИ ---
+            renderAll() {
+                this.renderHeader();
+                this.renderButton();
+                this.renderStats();
+                this.renderActivityGrid();
+                this.renderQuests();
+                this.renderQuote();
+                this.renderEnergy();
+            },
+
+            renderHeader() {
+                // Level Math
+                const diffTime = this.getMidnight(new Date()) - this.getMidnight(DOB);
+                const level = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                document.getElementById('levelNum').textContent = level;
+
+                // Greeting logic
+                const hour = new Date().getHours();
+                let greet = "Доброй ночи";
+                if (hour >= 5 && hour < 12) greet = "Доброе утро, пора действовать";
+                else if (hour >= 12 && hour < 18) greet = "Экватор дня";
+                else if (hour >= 18 && hour < 23) greet = "Вечерний анализ";
+                document.getElementById('greetingText').textContent = greet;
+            },
+
+            renderEnergy() {
+                document.getElementById('energyFill').style.width = this.state.todayEnergy + '%';
+                document.getElementById('energyText').textContent = this.state.todayEnergy + '%';
+            },
+
+            renderButton() {
+                const btn = document.getElementById('awakenBtn');
+                if (this.state.todayEnergy > 0) {
+                    btn.textContent = "Система активна ✓";
+                    btn.classList.add('done');
+                    btn.disabled = true;
+                } else {
+                    btn.textContent = "Инициализация дня";
+                    btn.classList.remove('done');
+                    btn.disabled = false;
+                }
+            },
+
+            renderStats() {
+                document.getElementById('streakCount').textContent = this.state.streak;
+                const icon = document.getElementById('streakIcon');
+                
+                // Ранги Стрика
+                if (this.state.streak >= 30) { icon.textContent = '⚡️'; icon.style.textShadow = '0 0 15px #a855f7'; }
+                else if (this.state.streak >= 7) { icon.textContent = '🔥'; icon.style.textShadow = '0 0 15px #3b82f6'; }
+                else if (this.state.streak > 0) { icon.textContent = '🔥'; icon.style.textShadow = '0 0 10px #ef4444'; }
+                else { icon.textContent = '🌑'; icon.style.textShadow = 'none'; }
+            },
+
+            renderActivityGrid() {
+                const grid = document.getElementById('activityGrid');
+                grid.innerHTML = '';
+                
+                // Генерируем последние 28 дней
+                const today = this.getMidnight(new Date());
+                
+                for (let i = 27; i >= 0; i--) {
+                    const d = new Date(today - (i * 24 * 60 * 60 * 1000));
+                    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                    
+                    const box = document.createElement('div');
+                    box.className = 'day-box';
+                    if (this.state.history.includes(dateStr)) {
+                        box.classList.add('active');
+                    }
+                    grid.appendChild(box);
+                }
+            },
+
+            renderQuests() {
+                const list = document.getElementById('questList');
+                list.innerHTML = '';
+                
+                this.state.quests.forEach((q, index) => {
+                    const item = document.createElement('div');
+                    item.className = `quest-item ${q.done ? 'completed' : ''}`;
+                    item.innerHTML = `
+                        <div class="checkbox" onclick="app.toggleQuest(${index})"></div>
+                        <div class="quest-text" onclick="app.toggleQuest(${index})">${q.text}</div>
+                    `;
+                    list.appendChild(item);
+                });
+            },
+
+            renderQuote() {
+                if(this.state.quoteObj) {
+                    document.getElementById('quoteText').textContent = `"${this.state.quoteObj.t}"`;
+                    document.getElementById('quoteAuthor').textContent = this.state.quoteObj.a;
+                }
+            }
+        };
+
+        // --- CANVAS ENGINE (Визуальный сок) ---
+        const canvasEngine = {
+            canvas: document.getElementById('bg-canvas'),
+            ctx: null,
+            particles: [],
+            width: 0, height: 0,
+            
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                // Создаем частицы сетки
+                for(let i=0; i<40; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.width, y: Math.random() * this.height,
+                        vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
+                        baseSize: Math.random() * 2 + 1
+                    });
+                }
+                this.animate();
+            },
+
+            resize() {
+                this.width = window.innerWidth; this.height = window.innerHeight;
+                this.canvas.width = this.width; this.canvas.height = this.height;
+            },
+
+            burst() {
+                // Ускоряем частицы при действии
+                this.particles.forEach(p => {
+                    p.vx *= 5; p.vy *= 5;
+                });
+                setTimeout(() => {
+                    this.particles.forEach(p => {
+                        p.vx /= 5; p.vy /= 5;
+                    });
+                }, 1000);
+            },
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                // Определяем цвет на основе энергии
+                const energy = app.state.todayEnergy;
+                let rgb = energy > 80 ? '16, 185, 129' : (energy > 0 ? '59, 130, 246' : '161, 161, 170');
+
+                this.ctx.lineWidth = 0.5;
+                
+                for(let i=0; i<this.particles.length; i++) {
+                    let p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+
+                    // Отскок
+                    if(p.x < 0 || p.x > this.width) p.vx *= -1;
+                    if(p.y < 0 || p.y > this.height) p.vy *= -1;
+
+                    // Отрисовка точки
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.baseSize, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${rgb}, 0.5)`;
+                    this.ctx.fill();
+
+                    // Отрисовка линий (сетка нейронов)
+                    for(let j=i+1; j<this.particles.length; j++) {
+                        let p2 = this.particles[j];
+                        let dx = p.x - p2.x; let dy = p.y - p2.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+
+                        if(dist < 120) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(p.x, p.y);
+                            this.ctx.lineTo(p2.x, p2.y);
+                            this.ctx.strokeStyle = `rgba(${rgb}, ${1 - dist/120})`;
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(() => this.animate());
+            }
+        };
+
+        // Запуск системы
+        app.init();
+
     </script>
 </body>
 </html>
