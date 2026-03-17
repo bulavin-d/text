@@ -1,343 +1,72 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0a0c">
-    <title>RECOVERY_OS</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RECOVERY_OS" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
 
-        :root {
-            --bg: #0a0a0c;
-            --surface: #16161a;
-            --primary: #00ffcc;
-            --secondary: #ff0055;
-            --text: #e0e0e0;
-            --text-muted: #808080;
-            --nav-bg: #0f0f13;
-        }
+  <title>RECOVERY_OS</title>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Header / Stats */
-        header {
-            padding: 20px 20px 10px;
-            background: var(--bg);
-            border-bottom: 1px solid rgba(0, 255, 204, 0.1);
-            z-index: 10;
-        }
-
-        .level-container { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
-        .level-text { font-weight: 700; color: var(--primary); font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .xp-text { font-size: 14px; color: var(--text-muted); }
-        
-        .xp-bar-bg { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
-        .xp-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--primary); }
-
-        /* Main Content */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            padding-bottom: 90px; /* Space for nav */
-        }
-
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Cards */
-        .card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--secondary);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .card.done {
-            border-left-color: var(--primary);
-            opacity: 0.6;
-        }
-
-        .card.done::after {
-            content: 'COMPLETED';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            font-size: 32px;
-            font-weight: 900;
-            color: rgba(0, 255, 204, 0.1);
-            pointer-events: none;
-            letter-spacing: 5px;
-        }
-
-        .card-time { font-size: 12px; color: var(--secondary); font-weight: 700; margin-bottom: 4px; display: inline-block; padding: 2px 8px; background: rgba(255,0,85,0.1); border-radius: 4px; }
-        .card.done .card-time { color: var(--primary); background: rgba(0,255,204,0.1); }
-        
-        .card-title { font-size: 18px; margin-bottom: 8px; font-weight: 700; }
-        .card-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
-        
-        .food-list { list-style: none; margin-bottom: 15px; background: #111; border-radius: 8px; padding: 10px; }
-        .food-list li { font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #333; display: flex; align-items: center; }
-        .food-list li::before { content: '>'; color: var(--primary); margin-right: 8px; font-weight: bold; }
-        .food-list li:last-child { border-bottom: none; }
-
-        .btn {
-            background: transparent;
-            color: var(--text);
-            border: 1px solid #333;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: all 0.2s;
-        }
-        .btn:active { transform: scale(0.98); }
-        .card:not(.done) .btn { background: rgba(0, 255, 204, 0.1); border-color: var(--primary); color: var(--primary); }
-        
-        /* Workout specific */
-        .workout-day { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 5px; text-transform: uppercase;}
-        .workout-focus { font-size: 14px; color: var(--secondary); margin-bottom: 20px; }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            bottom: 0; width: 100%;
-            background: var(--nav-bg);
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 10px 25px;
-            border-top: 1px solid #222;
-            z-index: 100;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: color 0.3s;
-        }
-        .nav-item.active { color: var(--primary); text-shadow: 0 0 10px rgba(0,255,204,0.3); }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
-
-        /* Helpers */
-        .section-title { font-size: 20px; margin-bottom: 15px; color: var(--text); text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 5px; display: inline-block;}
-        .rule-card { background: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 2px solid var(--primary); font-size: 14px; }
-    </style>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-
-    <header>
-        <div class="level-container">
-            <div class="level-text" id="lvl-display">LVL 1</div>
-            <div class="xp-text" id="xp-display">0 / 1000 XP</div>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="title">RECOVERY_OS</div>
+        <div class="subtitle">Квест-трекер восстановления</div>
+      </div>
+      <div class="status">
+        <div class="level">LVL <span id="levelValue">1</span></div>
+        <div class="xp-bar" aria-label="Прогресс опыта">
+          <div class="xp-fill" id="xpFill"></div>
         </div>
-        <div class="xp-bar-bg">
-            <div class="xp-bar-fill" id="xp-bar"></div>
+        <div class="xp-text">
+          <span id="xpCurrent">0</span>/<span id="xpNext">100</span> XP
         </div>
+      </div>
     </header>
 
-    <main>
-        <div id="tab-quests" class="tab-content active">
-            <div id="quests-container"></div>
+    <main class="app-main">
+      <section id="tab-quests" class="tab active" aria-labelledby="nav-quests">
+        <div class="rule-card">
+          <div class="rule-title">Критическое правило</div>
+          <div class="rule-text">Не голодать дольше <strong>4 часов</strong> (Синдром Жильбера). Интервал между приёмами пищи 3–3.5 часа.</div>
         </div>
 
-        <div id="tab-workout" class="tab-content">
-            <div id="workout-container"></div>
-        </div>
+        <div class="section-title">Ежедневная рутина</div>
+        <div class="quest-list" id="questList"></div>
+      </section>
 
-        <div id="tab-intel" class="tab-content">
-            <h2 class="section-title">Главные директивы</h2>
-            <div class="rule-card"><b>Питание:</b> 5 раз в день. Не голодать >4 часов (из-за Жильбера).</div>
-            <div class="rule-card"><b>Алкоголь:</b> 0%. Токсично для печени + риск панических атак.</div>
-            <div class="rule-card"><b>H.pylori:</b> Брокколи (сульфорафан) + греческий йогурт каждый день.</div>
-            <div class="rule-card"><b>ШОП & Шум:</b> Не сидеть с опущенной головой. Chin tuck каждый день.</div>
-            <div class="rule-card"><b>Сон:</b> Спать на левом боку (против рефлюкса), перед сном расслабление по Якобсону (снимет спазм tensor tympani).</div>
-        </div>
+      <section id="tab-training" class="tab" aria-labelledby="nav-training">
+        <div class="section-title">Миссия дня</div>
+        <div id="missionCard" class="mission-card"></div>
+        <div class="note">Тренировки не привязаны ко времени — отмечай после выполнения.</div>
+      </section>
+
+      <section id="tab-intel" class="tab" aria-labelledby="nav-intel">
+        <div class="section-title">Intel: правила выживания</div>
+        <div class="intel-list" id="intelList"></div>
+        <div class="note">Основано на твоём recovery guide. Не заменяет врача.</div>
+      </section>
     </main>
 
-    <nav>
-        <div class="nav-item active" onclick="switchTab('quests', this)">
-            <span class="nav-icon">⚡</span>
-            <span>Квесты</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('workout', this)">
-            <span class="nav-icon">🦾</span>
-            <span>Треня</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('intel', this)">
-            <span class="nav-icon">🧠</span>
-            <span>База</span>
-        </div>
+    <nav class="bottom-nav" aria-label="Навигация">
+      <button class="nav-btn active" id="nav-quests" data-tab="quests">Квесты</button>
+      <button class="nav-btn" id="nav-training" data-tab="training">Тренировки</button>
+      <button class="nav-btn" id="nav-intel" data-tab="intel">База знаний</button>
     </nav>
+  </div>
 
-    <script>
-        // Данные квестов (еда и рутина)
-        const quests = [
-            { id: 0, time: "Утро", title: "Запуск системы", desc: "Подъем. Сразу к окну на 15 мин (даем сигнал кортизолу, сбрасываем мелатонин).", items: [] },
-            { id: 1, time: "Завтрак", title: "Синтез нейростероидов", desc: "Жиры критичны для синтеза холестерина и снижения тревоги.", items: ["Овсянка (80г)", "2 яйца", "Йогурт (100г)", "Масло (10мл)"] },
-            { id: 2, time: "Перекус 1", title: "Подзарядка Магнием", desc: "Не даем билирубину расти. Закидываемся строительным материалом.", items: ["Творог 5-9% (150г)", "Хлеб серый", "Семечки (20г - Магний!)"] },
-            { id: 3, time: "Обед", title: "Массонабор + Анти-Хеликобактер", desc: "Основа калорийжа. Добавляем брокколи от H.pylori.", items: ["Гречка (100г) или Чечевица+Рис", "Куриное филе (120г)", "Брокколи (100-150г)", "Масло (15мл)"] },
-            { id: 4, time: "Перекус 2", title: "Пробиотик инжект", desc: "Вторая доза лактобактерий против бактерий желудка.", items: ["Греческий йогурт (150г)", "Банан", "Хлеб + масло"] },
-            { id: 5, time: "Ужин", title: "Антибилирубиновый щит", desc: "Творог (казеин) переваривается долго - организм не голодает ночью.", items: ["Гречка/рис (70г)", "2 яйца", "Творог (100г)", "Масло (5мл)"] },
-            { id: 6, time: "21:00", title: "Цифровой детокс", desc: "Экраны офф. Синий свет сбивает выработку мелатонина.", items: [] },
-            { id: 7, time: "23:00", title: "Гибернация", desc: "Сон строго на ЛЕВОМ боку (защита от рефлюкса).", items: ["Chin tuck 3x10 (декомпрессия ПА)", "Дыхание 4-7-8", "Расслабление по Якобсону (от шума в ухе)"] }
-        ];
-
-        // Данные тренировок по дням (0 - Воскресенье, 1 - Понедельник и т.д.)
-        const workouts = {
-            1: { type: "Зал: Верх тела", desc: "Грудные, спина, руки. Адаптационный блок. Веса легкие.", exercises: ["Жим гантелей лежа: 3x10-12", "Тяга верхнего блока: 3x10-12", "Жим гантелей стоя: 3x10-12", "Тяга в наклоне (ШОП!): 3x10-12", "Бицепс/Трицепс: 2x12"] },
-            2: { type: "Бассейн: Плавание", desc: "Кардио без потери мышц. Горизонтальное положение расслабляет позвоночные артерии.", exercises: ["Спокойный кроль/брасс: 30-40 минут", "Не выкладываться на максимум"] },
-            3: { type: "Отдых", desc: "Восстановление ЦНС и мышечных волокон. Никаких нагрузок.", exercises: ["Прогулка (опционально)"] },
-            4: { type: "Зал: Низ тела", desc: "Квадрицепсы, ягодичные, кор. Осторожно со спиной.", exercises: ["Присед (свой вес/гоблет): 3x12", "Жим ногами: 3x12", "Становая с гантелями (осанка!): 3x10", "Сгибания ног / Икры: 3x12", "Планка: 3x30 сек"] },
-            5: { type: "Бассейн: Плавание", desc: "Нейропластичность + BDNF фактор роста нейронов.", exercises: ["Спокойный кроль/брасс: 30-40 минут"] },
-            6: { type: "Зал: Фуллбади", desc: "Легкая прокачка всего тела + гиперэкстензия.", exercises: ["Жим гантелей (легкий): 2x12", "Тяга блока (легкая): 2x12", "Присед гоблет: 2x12", "Гиперэкстензия: 3x12"] },
-            0: { type: "Восстановление + Баня", desc: "При ИМТ 14.2 быстро наступает дегидратация. Пить воду до и после!", exercises: ["Баня: 15-20 минут максимум", "Отдых"] }
-        };
-
-        // Состояние приложения
-        let state = {
-            xp: parseInt(localStorage.getItem('recoveryXp')) || 0,
-            completed: JSON.parse(localStorage.getItem('recoveryCompleted')) || [],
-            lastDate: localStorage.getItem('recoveryDate') || new Date().toDateString()
-        };
-
-        const xpPerTask = 125;
-        const maxLevelXp = 1000;
-
-        function init() {
-            checkNewDay();
-            renderQuests();
-            renderWorkout();
-            updateStats();
-        }
-
-        // Проверка на новый день (сброс квестов)
-        function checkNewDay() {
-            const today = new Date().toDateString();
-            if (state.lastDate !== today) {
-                state.completed = [];
-                state.lastDate = today;
-                saveState();
-            }
-        }
-
-        // Рендер вкладки квестов
-        function renderQuests() {
-            const container = document.getElementById('quests-container');
-            container.innerHTML = quests.map((q, index) => {
-                const isDone = state.completed.includes(q.id);
-                let listHtml = '';
-                if (q.items.length > 0) {
-                    listHtml = `<ul class="food-list">${q.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
-                }
-                
-                return `
-                    <div class="card ${isDone ? 'done' : ''}" id="quest-${q.id}">
-                        <span class="card-time">${q.time}</span>
-                        <h3 class="card-title">${q.title}</h3>
-                        <p class="card-desc">${q.desc}</p>
-                        ${listHtml}
-                        <button class="btn" onclick="completeQuest(${q.id})" ${isDone ? 'disabled' : ''}>
-                            ${isDone ? 'Выполнено' : 'Подтвердить выполнение'}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Рендер тренировки на сегодня
-        function renderWorkout() {
-            const container = document.getElementById('workout-container');
-            const dayOfWeek = new Date().getDay();
-            const todayWork = workouts[dayOfWeek];
-            
-            const days = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
-            
-            container.innerHTML = `
-                <div class="workout-day">Сегодня: ${days[dayOfWeek]}</div>
-                <div class="workout-focus">${todayWork.type}</div>
-                <div class="card">
-                    <p class="card-desc" style="color: var(--text); margin-bottom: 20px;">${todayWork.desc}</p>
-                    <ul class="food-list" style="background: rgba(255,0,85,0.05); border: 1px solid rgba(255,0,85,0.2);">
-                        ${todayWork.exercises.map(ex => `<li>${ex}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-        }
-
-        // Логика выполнения квеста
-        function completeQuest(id) {
-            if (state.completed.includes(id)) return;
-            
-            state.completed.push(id);
-            state.xp += xpPerTask;
-            saveState();
-            
-            // Анимация и обновление
-            const card = document.getElementById(`quest-${id}`);
-            card.classList.add('done');
-            card.querySelector('.btn').innerText = 'Выполнено';
-            card.querySelector('.btn').disabled = true;
-            
-            updateStats();
-        }
-
-        // Обновление полоски XP и уровня
-        function updateStats() {
-            const currentLevel = Math.floor(state.xp / maxLevelXp) + 1;
-            const currentLevelXp = state.xp % maxLevelXp;
-            const progressPercent = (currentLevelXp / maxLevelXp) * 100;
-            
-            document.getElementById('lvl-display').innerText = `LVL ${currentLevel}`;
-            document.getElementById('xp-display').innerText = `${currentLevelXp} / ${maxLevelXp} XP`;
-            document.getElementById('xp-bar').style.width = `${progressPercent}%`;
-        }
-
-        function saveState() {
-            localStorage.setItem('recoveryXp', state.xp);
-            localStorage.setItem('recoveryCompleted', JSON.stringify(state.completed));
-            localStorage.setItem('recoveryDate', state.lastDate);
-        }
-
-        // Переключение вкладок в нижнем меню
-        function switchTab(tabId, element) {
-            // Скрыть все табы
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            
-            // Показать выбранный
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            element.classList.add('active');
-        }
-
-        // Запуск
-        init();
-    </script>
+  <script src="data/constants.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
