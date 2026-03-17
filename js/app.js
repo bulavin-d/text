@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = "recovery_os_state_v1";
+﻿const STORAGE_KEY = "recovery_os_state_v2";
 
 const dom = {
   levelValue: document.getElementById("levelValue"),
@@ -10,18 +10,19 @@ const dom = {
   intelList: document.getElementById("intelList"),
   navButtons: Array.from(document.querySelectorAll(".nav-btn")),
   tabs: {
+    home: document.getElementById("tab-home"),
     quests: document.getElementById("tab-quests"),
     training: document.getElementById("tab-training"),
     intel: document.getElementById("tab-intel")
-  }
-};
-
-const defaultState = {
-  xp: 0,
-  level: 1,
-  completedQuests: {},
-  completedMissions: {},
-  lastLoginDate: null
+  },
+  avatar: document.getElementById("avatar"),
+  avatarStatus: document.getElementById("avatarStatus"),
+  dailyProgressRing: document.getElementById("dailyProgressRing"),
+  dailyPercent: document.getElementById("dailyPercent"),
+  dailyCount: document.getElementById("dailyCount"),
+  dailyMeta: document.getElementById("dailyMeta"),
+  resetProgress: document.getElementById("resetProgress"),
+  toast: document.getElementById("toast")
 };
 
 const getTodayKey = () => {
@@ -32,14 +33,30 @@ const getTodayKey = () => {
   return `${year}-${month}-${day}`;
 };
 
+const createDailyEntry = () => ({
+  quests: {},
+  missionDone: false
+});
+
+const getDefaultState = () => ({
+  xp: 0,
+  createdAt: getTodayKey(),
+  lastActiveDate: getTodayKey(),
+  daily: {}
+});
+
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...defaultState };
+    if (!raw) return getDefaultState();
     const parsed = JSON.parse(raw);
-    return { ...defaultState, ...parsed };
+    return {
+      ...getDefaultState(),
+      ...parsed,
+      daily: parsed.daily || {}
+    };
   } catch (error) {
-    return { ...defaultState };
+    return getDefaultState();
   }
 };
 
@@ -49,13 +66,15 @@ const saveState = (state) => {
 
 const ensureTodayState = (state) => {
   const today = getTodayKey();
-  if (state.lastLoginDate !== today) {
-    state.completedQuests = { [today]: {} };
-    state.completedMissions = { [today]: {} };
-    state.lastLoginDate = today;
-  }
-  if (!state.completedQuests[today]) state.completedQuests[today] = {};
-  if (!state.completedMissions[today]) state.completedMissions[today] = {};
+  if (!state.daily) state.daily = {};
+  if (!state.daily[today]) state.daily[today] = createDailyEntry();
+  state.lastActiveDate = today;
+};
+
+const getDailyState = (state) => {
+  const today = getTodayKey();
+  if (!state.daily[today]) state.daily[today] = createDailyEntry();
+  return state.daily[today];
 };
 
 const computeLevel = (xp) => Math.floor(xp / APP_CONFIG.xpPerLevel) + 1;
@@ -68,98 +87,231 @@ const getLevelProgress = (xp) => {
   };
 };
 
-const updateHeader = (state) => {
+const updateXpUI = (state) => {
   const { progress, next } = getLevelProgress(state.xp);
-  const level = computeLevel(state.xp);
-  state.level = level;
-
-  dom.levelValue.textContent = String(level);
+  dom.levelValue.textContent = String(computeLevel(state.xp));
   dom.xpCurrent.textContent = String(progress);
   dom.xpNext.textContent = String(next);
   dom.xpFill.style.width = `${(progress / next) * 100}%`;
 };
 
+const getMissionForToday = () => {
+  const dayIndex = new Date().getDay();
+  return {
+    dayIndex,
+    mission: TRAINING_SCHEDULE[dayIndex]
+  };
+};
+
+const getDailyProgress = (state) => {
+  const daily = getDailyState(state);
+  const questTotal = QUESTS.length;
+  const questDone = Object.keys(daily.quests).length;
+  const { mission } = getMissionForToday();
+  const missionTotal = mission && !mission.rest && mission.xp ? 1 : 0;
+  const missionDone = daily.missionDone ? 1 : 0;
+  const total = questTotal + missionTotal;
+  const done = questDone + missionDone;
+  const percent = total ? Math.round((done / total) * 100) : 0;
+  return { total, done, percent, questDone, questTotal, missionTotal, missionDone };
+};
+
+const getAvatarStage = (percent) => {
+  if (percent >= 75) return 3;
+  if (percent >= 50) return 2;
+  if (percent >= 25) return 1;
+  return 0;
+};
+
+const getAvatarStatusText = (stage) => {
+  switch (stage) {
+    case 1:
+      return "Состояние: стабилизация";
+    case 2:
+      return "Состояние: усиление";
+    case 3:
+      return "Состояние: заряжен";
+    default:
+      return "Состояние: старт миссии";
+  }
+};
+
+const renderHome = (state) => {
+  const progress = getDailyProgress(state);
+  const stage = getAvatarStage(progress.percent);
+
+  dom.avatar.classList.remove("stage-0", "stage-1", "stage-2", "stage-3");
+  dom.avatar.classList.add(`stage-${stage}`);
+  dom.avatarStatus.textContent = getAvatarStatusText(stage);
+
+  dom.dailyProgressRing.style.setProperty("--progress", `${progress.percent * 3.6}deg`);
+  dom.dailyPercent.textContent = `${progress.percent}%`;
+  dom.dailyCount.textContent = `${progress.done}/${progress.total}`;
+
+  if (progress.total === 0) {
+    dom.dailyMeta.textContent = "Сегодня нет миссий";
+  } else if (progress.percent === 100) {
+    dom.dailyMeta.textContent = "Полный зачёт дня";
+  } else {
+    dom.dailyMeta.textContent = `Квесты: ${progress.questDone}/${progress.questTotal}`;
+  }
+};
+
 const buildMetaText = (parts) => parts.filter(Boolean).join(" • ");
 
+const renderQuestCard = (quest, isDone) => {
+  const card = document.createElement("div");
+  card.className = `quest-card${isDone ? " completed" : ""}`;
+
+  const header = document.createElement("div");
+  header.className = "quest-header";
+
+  const info = document.createElement("div");
+  const title = document.createElement("div");
+  title.className = "quest-title";
+  title.textContent = quest.title;
+
+  const time = document.createElement("div");
+  time.className = "quest-time";
+  time.textContent = quest.time;
+
+  const meta = document.createElement("div");
+  meta.className = "quest-meta";
+  meta.textContent = buildMetaText([
+    quest.goal,
+    `+${quest.xp ?? APP_CONFIG.questXpDefault} XP`
+  ]);
+
+  info.appendChild(title);
+  info.appendChild(time);
+  info.appendChild(meta);
+
+  const tag = document.createElement("div");
+  tag.className = "tag";
+  tag.textContent = quest.category;
+
+  header.appendChild(info);
+  header.appendChild(tag);
+
+  card.appendChild(header);
+
+  let list = null;
+  const ensureList = () => {
+    if (!list) {
+      list = document.createElement("div");
+      list.className = "quest-items";
+    }
+    return list;
+  };
+
+  if (quest.foods) {
+    const listEl = ensureList();
+    quest.foods.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "quest-item";
+      row.textContent = item;
+      listEl.appendChild(row);
+    });
+  }
+
+  if (quest.steps) {
+    const listEl = ensureList();
+    quest.steps.forEach((step) => {
+      const row = document.createElement("div");
+      row.className = "quest-item";
+      row.textContent = step;
+      listEl.appendChild(row);
+    });
+  }
+
+  if (list) {
+    card.appendChild(list);
+  }
+
+  if (quest.options) {
+    quest.options.forEach((option) => {
+      const optionWrap = document.createElement("div");
+      optionWrap.className = "quest-option";
+
+      const optionTitle = document.createElement("div");
+      optionTitle.className = "quest-option-title";
+      optionTitle.textContent = option.label;
+
+      optionWrap.appendChild(optionTitle);
+
+      option.items.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "quest-item";
+        row.textContent = item;
+        optionWrap.appendChild(row);
+      });
+
+      card.appendChild(optionWrap);
+    });
+  }
+
+  if (quest.extras) {
+    const extraWrap = document.createElement("div");
+    extraWrap.className = "quest-option";
+
+    const extraTitle = document.createElement("div");
+    extraTitle.className = "quest-option-title";
+    extraTitle.textContent = "Дополнительно";
+
+    extraWrap.appendChild(extraTitle);
+    quest.extras.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "quest-item";
+      row.textContent = item;
+      extraWrap.appendChild(row);
+    });
+
+    card.appendChild(extraWrap);
+  }
+
+  const btn = document.createElement("button");
+  btn.className = "btn primary";
+  btn.textContent = isDone ? "Выполнено" : "Выполнить";
+  btn.disabled = isDone;
+  btn.dataset.questId = quest.id;
+
+  card.appendChild(btn);
+  return card;
+};
+
 const renderQuests = (state) => {
-  const today = getTodayKey();
-  const completed = state.completedQuests[today] || {};
+  const daily = getDailyState(state);
   dom.questList.innerHTML = "";
 
   QUESTS.forEach((quest) => {
-    const isDone = Boolean(completed[quest.id]);
-
-    const card = document.createElement("div");
-    card.className = `quest-card${isDone ? " completed" : ""}`;
-
-    const row = document.createElement("div");
-    row.className = "quest-row";
-
-    const info = document.createElement("div");
-
-    const title = document.createElement("div");
-    title.className = "quest-title";
-    title.textContent = quest.title;
-
-    const meta = document.createElement("div");
-    meta.className = "quest-meta";
-    meta.textContent = buildMetaText([
-      quest.time,
-      quest.note,
-      `+${quest.xp ?? APP_CONFIG.questXpDefault} XP`
-    ]);
-
-    info.appendChild(title);
-    info.appendChild(meta);
-
-    const tag = document.createElement("div");
-    tag.className = "tag";
-    tag.textContent = quest.category;
-
-    row.appendChild(info);
-    row.appendChild(tag);
-
-    const btn = document.createElement("button");
-    btn.className = "btn";
-    btn.textContent = isDone ? "Выполнено" : "Выполнить";
-    btn.disabled = isDone;
-    btn.dataset.questId = quest.id;
-
-    card.appendChild(row);
-    card.appendChild(btn);
-    dom.questList.appendChild(card);
+    const isDone = Boolean(daily.quests[quest.id]);
+    dom.questList.appendChild(renderQuestCard(quest, isDone));
   });
 };
 
 const renderMission = (state) => {
-  const today = getTodayKey();
-  const dayIndex = new Date().getDay();
-  const mission = TRAINING_SCHEDULE[dayIndex];
-  const completed = state.completedMissions[today] || {};
-  const isDone = Boolean(completed[dayIndex]);
+  const daily = getDailyState(state);
+  const { dayIndex, mission } = getMissionForToday();
 
   dom.missionCard.innerHTML = "";
 
   if (!mission) {
-    const empty = document.createElement("div");
-    empty.textContent = "Нет миссии на сегодня";
-    dom.missionCard.appendChild(empty);
+    dom.missionCard.textContent = "Нет миссии на сегодня";
     return;
   }
-
-  const header = document.createElement("div");
-  header.className = "mission-header";
 
   const title = document.createElement("div");
   title.className = "mission-title";
   title.textContent = mission.title;
 
-  const dayTag = document.createElement("div");
-  dayTag.className = "tag";
-  dayTag.textContent = DAY_NAMES_RU[dayIndex];
+  const tag = document.createElement("div");
+  tag.className = "tag";
+  tag.textContent = DAY_NAMES_RU[dayIndex];
 
+  const header = document.createElement("div");
+  header.className = "quest-header";
   header.appendChild(title);
-  header.appendChild(dayTag);
+  header.appendChild(tag);
 
   const meta = document.createElement("div");
   meta.className = "mission-meta";
@@ -170,14 +322,13 @@ const renderMission = (state) => {
   ]);
 
   const btn = document.createElement("button");
-  btn.className = "btn";
-  btn.textContent = mission.action || "Миссия выполнена";
-  btn.disabled = mission.rest || isDone || !mission.xp;
-  btn.dataset.missionDay = String(dayIndex);
+  const isDone = daily.missionDone;
+  const isRest = mission.rest || !mission.xp;
 
-  if (isDone) {
-    btn.textContent = "Миссия выполнена";
-  }
+  btn.className = "btn primary";
+  btn.textContent = isRest ? "День восстановления" : (isDone ? "Миссия выполнена" : "Начать тренировку");
+  btn.disabled = isRest || isDone;
+  btn.dataset.missionDay = String(dayIndex);
 
   dom.missionCard.appendChild(header);
   dom.missionCard.appendChild(meta);
@@ -186,7 +337,6 @@ const renderMission = (state) => {
 
 const renderIntel = () => {
   dom.intelList.innerHTML = "";
-
   INTEL_RULES.forEach((rule) => {
     const card = document.createElement("div");
     card.className = "intel-card";
@@ -203,35 +353,47 @@ const renderIntel = () => {
   });
 };
 
+const showToast = (message) => {
+  dom.toast.textContent = message;
+  dom.toast.classList.add("show");
+  window.clearTimeout(dom.toastTimer);
+  dom.toastTimer = window.setTimeout(() => {
+    dom.toast.classList.remove("show");
+  }, 1400);
+};
+
 const grantXp = (state, amount) => {
   state.xp += amount;
-  state.level = computeLevel(state.xp);
 };
 
 const completeQuest = (state, questId) => {
   const quest = QUESTS.find((item) => item.id === questId);
   if (!quest) return;
+  const daily = getDailyState(state);
+  if (daily.quests[questId]) return;
 
-  const today = getTodayKey();
-  if (state.completedQuests[today][questId]) return;
-  state.completedQuests[today][questId] = true;
+  daily.quests[questId] = true;
   grantXp(state, quest.xp ?? APP_CONFIG.questXpDefault);
   saveState(state);
-  updateHeader(state);
+  updateXpUI(state);
+  renderHome(state);
   renderQuests(state);
+  showToast(`+${quest.xp ?? APP_CONFIG.questXpDefault} XP`);
 };
 
 const completeMission = (state, dayIndex) => {
-  const mission = TRAINING_SCHEDULE[dayIndex];
+  const { mission } = getMissionForToday();
   if (!mission || mission.rest || !mission.xp) return;
+  const daily = getDailyState(state);
+  if (daily.missionDone) return;
 
-  const today = getTodayKey();
-  if (state.completedMissions[today][dayIndex]) return;
-  state.completedMissions[today][dayIndex] = true;
+  daily.missionDone = true;
   grantXp(state, mission.xp || APP_CONFIG.trainingXpBoost);
   saveState(state);
-  updateHeader(state);
+  updateXpUI(state);
+  renderHome(state);
   renderMission(state);
+  showToast(`+${mission.xp} XP`);
 };
 
 const setActiveTab = (tabName) => {
@@ -241,14 +403,40 @@ const setActiveTab = (tabName) => {
   dom.navButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tabName);
   });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-const setupEvents = (state) => {
+const resetAllProgress = () => {
+  const confirmReset = window.confirm("Сбросить весь прогресс и начать заново?");
+  if (!confirmReset) return;
+
+  localStorage.removeItem(STORAGE_KEY);
+  appState = getDefaultState();
+  ensureTodayState(appState);
+  saveState(appState);
+  renderAll();
+  showToast("Прогресс обнулён");
+  setActiveTab("home");
+};
+
+const scheduleMidnightReset = () => {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+  const delay = Math.max(1000, next.getTime() - now.getTime());
+  window.setTimeout(() => {
+    ensureTodayState(appState);
+    saveState(appState);
+    renderAll();
+    scheduleMidnightReset();
+  }, delay);
+};
+
+const setupEvents = () => {
   dom.questList.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.questId && !target.hasAttribute("disabled")) {
-      completeQuest(state, target.dataset.questId);
+      completeQuest(appState, target.dataset.questId);
     }
   });
 
@@ -256,27 +444,19 @@ const setupEvents = (state) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.missionDay && !target.hasAttribute("disabled")) {
-      completeMission(state, Number(target.dataset.missionDay));
+      completeMission(appState, Number(target.dataset.missionDay));
     }
   });
 
   dom.navButtons.forEach((btn) => {
     btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
   });
-};
 
-const scheduleMidnightReset = (state) => {
-  const now = new Date();
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
-  const delay = next.getTime() - now.getTime();
-  window.setTimeout(() => {
-    ensureTodayState(state);
-    saveState(state);
-    updateHeader(state);
-    renderQuests(state);
-    renderMission(state);
-    scheduleMidnightReset(state);
-  }, delay);
+  document.querySelectorAll("[data-nav]").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveTab(btn.dataset.nav));
+  });
+
+  dom.resetProgress.addEventListener("click", resetAllProgress);
 };
 
 const registerServiceWorker = () => {
@@ -287,18 +467,20 @@ const registerServiceWorker = () => {
   }
 };
 
-const init = () => {
-  const state = loadState();
-  ensureTodayState(state);
-  updateHeader(state);
-  renderQuests(state);
-  renderMission(state);
+const renderAll = () => {
+  updateXpUI(appState);
+  renderHome(appState);
+  renderQuests(appState);
+  renderMission(appState);
   renderIntel();
-  setupEvents(state);
-  scheduleMidnightReset(state);
-  saveState(state);
-  registerServiceWorker();
 };
 
-init();
+let appState = loadState();
+ensureTodayState(appState);
+saveState(appState);
+renderAll();
+setupEvents();
+scheduleMidnightReset();
+registerServiceWorker();
+
 

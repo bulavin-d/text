@@ -19,12 +19,12 @@
 </head>
 <body>
   <div class="app">
-    <header class="app-header">
-      <div class="brand">
-        <div class="title">RECOVERY_OS</div>
-        <div class="subtitle">Квест-трекер восстановления</div>
+    <header class="topbar">
+      <div class="logo-block">
+        <div class="logo">RECOVERY_OS</div>
+        <div class="logo-sub">Кибер-квест восстановления</div>
       </div>
-      <div class="status">
+      <div class="xp-panel">
         <div class="level">LVL <span id="levelValue">1</span></div>
         <div class="xp-bar" aria-label="Прогресс опыта">
           <div class="xp-fill" id="xpFill"></div>
@@ -35,35 +35,79 @@
       </div>
     </header>
 
-    <main class="app-main">
-      <section id="tab-quests" class="tab active" aria-labelledby="nav-quests">
+    <main class="main">
+      <section id="tab-home" class="tab active" aria-labelledby="nav-home">
+        <div class="hero-grid">
+          <div class="card avatar-card">
+            <div class="card-title">Персонаж</div>
+            <div class="avatar stage-0" id="avatar">
+              <div class="aura"></div>
+              <div class="head">
+                <div class="hair"></div>
+                <div class="eyes">
+                  <span class="eye"></span>
+                  <span class="eye"></span>
+                </div>
+              </div>
+              <div class="neck"></div>
+              <div class="torso"></div>
+              <div class="arm left"></div>
+              <div class="arm right"></div>
+              <div class="shorts"></div>
+              <div class="leg left"></div>
+              <div class="leg right"></div>
+            </div>
+            <div class="avatar-status" id="avatarStatus">Состояние: старт миссии</div>
+          </div>
+
+          <div class="card progress-card">
+            <div class="card-title">Прогресс сегодня</div>
+            <div class="progress-ring" id="dailyProgressRing">
+              <div class="progress-value">
+                <div class="progress-percent" id="dailyPercent">0%</div>
+                <div class="progress-label" id="dailyCount">0/0</div>
+              </div>
+            </div>
+            <div class="progress-meta" id="dailyMeta">Квесты ещё не начаты</div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn primary" data-nav="quests">Открыть квесты</button>
+          <button class="btn ghost" id="resetProgress">Сбросить прогресс</button>
+        </div>
+
         <div class="rule-card">
           <div class="rule-title">Критическое правило</div>
           <div class="rule-text">Не голодать дольше <strong>4 часов</strong> (Синдром Жильбера). Интервал между приёмами пищи 3–3.5 часа.</div>
         </div>
+      </section>
 
-        <div class="section-title">Ежедневная рутина</div>
+      <section id="tab-quests" class="tab" aria-labelledby="nav-quests">
+        <div class="section-title">Ежедневные квесты</div>
         <div class="quest-list" id="questList"></div>
       </section>
 
       <section id="tab-training" class="tab" aria-labelledby="nav-training">
         <div class="section-title">Миссия дня</div>
-        <div id="missionCard" class="mission-card"></div>
+        <div id="missionCard" class="card mission-card"></div>
         <div class="note">Тренировки не привязаны ко времени — отмечай после выполнения.</div>
       </section>
 
       <section id="tab-intel" class="tab" aria-labelledby="nav-intel">
         <div class="section-title">Intel: правила выживания</div>
         <div class="intel-list" id="intelList"></div>
-        <div class="note">Основано на твоём recovery guide. Не заменяет врача.</div>
       </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Навигация">
-      <button class="nav-btn active" id="nav-quests" data-tab="quests">Квесты</button>
+      <button class="nav-btn active" id="nav-home" data-tab="home">Главная</button>
+      <button class="nav-btn" id="nav-quests" data-tab="quests">Квесты</button>
       <button class="nav-btn" id="nav-training" data-tab="training">Тренировки</button>
-      <button class="nav-btn" id="nav-intel" data-tab="intel">База знаний</button>
+      <button class="nav-btn" id="nav-intel" data-tab="intel">Intel</button>
     </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </div>
 
   <script src="data/constants.js"></script>

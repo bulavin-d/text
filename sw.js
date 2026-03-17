@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "recovery-os-v1";
+﻿const CACHE_NAME = "recovery-os-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -41,3 +41,4 @@ self.addEventListener("fetch", (event) => {
       )
   );
 });
+
