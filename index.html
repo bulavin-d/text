@@ -2,357 +2,350 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
-    <title>SYSTEM</title>
+    <meta name="theme-color" content="#121212">
+    <title>Recovery Quest</title>
     <style>
         :root {
-            --bg: #000000;
-            --surface: #111112;
-            --border: rgba(255, 255, 255, 0.06);
-            --text-main: #ffffff;
-            --text-muted: #6e6e73;
-            --accent: #ffffff;
-            --success: #32d74b;
-            --rad: 20px;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent: #ff4757;
+            --text-main: #f1f2f6;
+            --text-muted: #a4b0be;
+            --success: #2ed573;
         }
-
-        * { 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif; 
-        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; }
         
         body {
-            margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main);
-            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden; 
-            padding-top: max(env(safe-area-inset-top), 40px);
-            padding-bottom: max(env(safe-area-inset-bottom), 40px);
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Ambient Aura Background */
-        .ambient-aura {
-            position: fixed; top: 10%; left: 50%; transform: translateX(-50%);
-            width: 80vw; height: 80vw; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 70%);
-            filter: blur(40px); z-index: 0; pointer-events: none;
-            transition: background 2s ease;
-        }
-        .ambient-aura.completed {
-            background: radial-gradient(circle, rgba(50,215,75,0.05) 0%, rgba(0,0,0,0) 70%);
-        }
-
-        .container {
-            position: relative; z-index: 1; width: 90%; max-width: 400px;
-            display: flex; flex-direction: column; gap: 16px;
-        }
-
-        /* Minimal Cards */
-        .card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--rad); padding: 24px;
-        }
-
-        /* Typography */
-        .label {
-            font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
-            color: var(--text-muted); font-weight: 600; margin-bottom: 8px; display: block;
-        }
-        
-        .level-block { text-align: center; padding: 10px 0 20px 0; }
-        .level-number {
-            font-size: 88px; font-weight: 200; letter-spacing: -3px; line-height: 1;
+            background-color: var(--bg-color);
             color: var(--text-main);
-        }
-        .level-subtitle {
-            font-size: 14px; color: var(--text-muted); font-weight: 400; margin-top: 8px;
-        }
-
-        /* Init Button */
-        .btn-init {
-            background: var(--text-main); color: var(--bg); border: none;
-            width: 100%; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s ease;
-        }
-        .btn-init:active { transform: scale(0.97); opacity: 0.8; }
-        .btn-init.active {
-            background: rgba(255, 255, 255, 0.05); color: var(--text-muted); pointer-events: none;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Grid Matrix (Punch Card) */
-        .matrix-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
-        .streak-val { font-size: 16px; font-weight: 500; }
-        .grid {
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
-        }
-        .dot {
-            aspect-ratio: 1; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1);
-            background: transparent; transition: all 0.3s ease;
-        }
-        .dot.filled { background: var(--text-main); border-color: var(--text-main); }
-        .dot.missed { border-color: rgba(255, 59, 48, 0.3); }
-
-        /* Quests */
-        .quest-item {
-            display: flex; align-items: center; gap: 16px; padding: 14px 0;
-            border-bottom: 1px solid var(--border); transition: opacity 0.3s ease;
-        }
-        .quest-item:last-child { border-bottom: none; padding-bottom: 0; }
-        
-        .circle-check {
-            width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--text-muted);
-            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-        }
-        .quest-item.done .circle-check {
-            background: var(--text-main); border-color: var(--text-main);
-        }
-        /* SVG Checkmark */
-        .circle-check svg { width: 12px; height: 12px; fill: none; stroke: var(--bg); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
-        .quest-item.done .circle-check svg { opacity: 1; }
-
-        .quest-text {
-            font-size: 15px; font-weight: 400; color: var(--text-main); transition: all 0.3s;
-        }
-        .quest-item.done .quest-text {
-            color: var(--text-muted); text-decoration: line-through;
+        header {
+            margin-bottom: 30px;
+            text-align: center;
         }
 
-        /* Progress Line */
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #2f3542;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
         .progress-bar {
-            width: 100%; height: 2px; background: rgba(255,255,255,0.1); margin-top: 16px; border-radius: 2px; overflow: hidden;
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s ease;
         }
-        .progress-fill {
-            height: 100%; width: 0%; background: var(--text-main); transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+
+        .status-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.5s forwards;
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-time {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-title {
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .step-desc {
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        ul.food-list {
+            list-style: none;
+            margin-bottom: 24px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        ul.food-list li {
+            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 1px solid #333;
+        }
+        ul.food-list li:last-child { border-bottom: none; }
+
+        .btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.1s, background 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .done-state {
+            text-align: center;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+        }
+
+        .done-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .reset-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 12px;
+        }
+        
+        cite {
+            font-size: 10px;
+            opacity: 0.5;
+            text-decoration: none;
+            font-style: normal;
         }
     </style>
 </head>
 <body>
 
-    <div class="ambient-aura" id="aura"></div>
+    <header>
+        <h1>Recovery Quest</h1>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <div class="status-text" id="status">Шаг 0 / 9</div>
+    </header>
 
-    <div class="container">
-        
-        <div class="level-block">
-            <span class="label">Текущий уровень</span>
-            <div class="level-number" id="levelNum">0</div>
-            <div class="level-subtitle" id="systemStatus">Синхронизация...</div>
+    <div id="quest-container">
         </div>
 
-        <button class="btn-init" id="initBtn" onclick="app.initDay()">Запустить день</button>
-
-        <div class="card" id="questCard">
-            <span class="label">Протокол действий</span>
-            <div id="questList"></div>
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        </div>
-
-        <div class="card">
-            <div class="matrix-header">
-                <span class="label" style="margin:0;">Матрица (28 дней)</span>
-                <span class="streak-val" id="streakCount">Серия: 0</span>
-            </div>
-            <div class="grid" id="matrixGrid"></div>
-        </div>
-
+    <div class="done-state" id="done-state">
+        <div class="done-icon">🧬</div>
+        <h2 style="margin-bottom: 10px;">День уничтожен!</h2>
+        <p style="color: var(--text-muted); font-size: 14px; text-align: center;">Творог усваивается, билирубин в норме, ЦНС отдыхает.</p>
+        <button class="btn reset-btn" onclick="resetQuest()">Начать новый день</button>
     </div>
 
     <script>
-        const DOB = new Date(2003, 1, 10); // 10 февраля 2003
-        
-        // База задач без шелухи
-        const TASKS = [
-            "Выпить 500мл воды", "Физическая активность (15 мин)", "Очистить рабочее пространство",
-            "Чтение (15 страниц)", "Фокус-сессия без телефона", "Спланировать завтрашний день",
-            "Сделать растяжку", "Выйти на свежий воздух", "Контроль финансов (записать траты)"
+        const questData = [
+            {
+                time: "07:30 - 08:15",
+                title: "Пробуждение & Свет",
+                desc: "Вставай в одно время <cite>[cite: 98]</cite>. Сразу иди к окну или на улицу на 10-15 минут ловить свет <cite>[cite: 100]</cite>. Это подавит мелатонин и даст сигнал кортизолу <cite>[cite: 101]</cite>.",
+                list: [],
+                btnText: "Свет пойман 👁️"
+            },
+            {
+                time: "08:00 - 09:00",
+                title: "Завтрак (~600 ккал)",
+                desc: "Жиры — ключ к нейростероидам и снижению тревоги <cite>[cite: 6]</cite>. Не пропускай!",
+                list: [
+                    "Овсянка (сухая) — 80 г <cite>[cite: 10]</cite>",
+                    "Яйца куриные — 2 шт <cite>[cite: 11]</cite>",
+                    "Греческий йогурт — 100 г (против H.pylori) <cite>[cite: 13]</cite>",
+                    "Подсолнечное масло — 10 мл <cite>[cite: 14]</cite>"
+                ],
+                btnText: "Я поел 🥣"
+            },
+            {
+                time: "11:00 - 11:30",
+                title: "Перекус 1 (~350 ккал)",
+                desc: "Правило Жильбера: не голодать >4 часов вообще никогда <cite>[cite: 7]</cite>.",
+                list: [
+                    "Творог 5-9% — 150 г <cite>[cite: 16, 17]</cite>",
+                    "Хлеб серый — 2 ломтя <cite>[cite: 18]</cite>",
+                    "Семечки — 20 г (Магний!) <cite>[cite: 19]</cite>"
+                ],
+                btnText: "Зарядился 🔋"
+            },
+            {
+                time: "14:00 - 14:30",
+                title: "Обед (~700 ккал)",
+                desc: "Плюс обязательно добавь обычную брокколи (100-150г) от H.pylori <cite>[cite: 90, 92]</cite>.",
+                list: [
+                    "Гречка (100г сухого) <cite>[cite: 22]</cite> ИЛИ Чечевица (80г) + Рис (60г) <cite>[cite: 27, 28]</cite>",
+                    "Куриное филе — 120 г <cite>[cite: 23]</cite>",
+                    "Масло (15 мл) + Морковь/лук (80г) <cite>[cite: 24, 25]</cite>"
+                ],
+                btnText: "Обед уничтожен 🍗"
+            },
+            {
+                time: "17:00 - 17:30",
+                title: "Перекус 2 (~350 ккал)",
+                desc: "Добиваем калории и закидываем вторую порцию пробиотиков <cite>[cite: 34]</cite>.",
+                list: [
+                    "Греческий йогурт — 150 г <cite>[cite: 33]</cite>",
+                    "Банан — 1 шт <cite>[cite: 35]</cite>",
+                    "Хлеб (30г) + Масло (10мл) <cite>[cite: 36]</cite>"
+                ],
+                btnText: "Сделано 🍌"
+            },
+            {
+                time: "Вечер",
+                title: "Активность & ШОП",
+                desc: "Сделай Chin tuck (3 подхода по 10 раз) для декомпрессии ПА <cite>[cite: 87, 88]</cite>. Пн/Чт/Сб — легкий зал <cite>[cite: 66, 68, 69]</cite>, Вт/Пт — бассейн <cite>[cite: 67, 89]</cite>, Вс — отдых и баня <cite>[cite: 70]</cite>.",
+                list: [],
+                btnText: "Отработал 🏋️‍♂️"
+            },
+            {
+                time: "20:00 - 20:30",
+                title: "Ужин (~550 ккал)",
+                desc: "Творог на ночь = антибилирубиновый щит. Организм не голодает ночью <cite>[cite: 136, 137]</cite>.",
+                list: [
+                    "Гречка или рис — 70 г <cite>[cite: 38, 39]</cite>",
+                    "Яйца куриные — 2 шт <cite>[cite: 40]</cite>",
+                    "Творог 5-9% — 100 г <cite>[cite: 41]</cite>",
+                    "Подсолнечное масло — 5 мл <cite>[cite: 42]</cite>"
+                ],
+                btnText: "Съел 🍽️"
+            },
+            {
+                time: "21:00",
+                title: "Цифровой Детокс",
+                desc: "Синий свет подавляет мелатонин на 2-3 часа <cite>[cite: 103]</cite>. Убирай телефон, врубай режим ночного света на ПК <cite>[cite: 102]</cite>.",
+                list: [],
+                btnText: "Экраны офф 📵"
+            },
+            {
+                time: "23:00 - 23:30",
+                title: "Сон",
+                desc: "Дыши 4-7-8 <cite>[cite: 106]</cite>. Сделай релаксацию по Якобсону (снимет спазм tensor tympani) <cite>[cite: 111]</cite>. Ложись спать на левый бок (уменьшает желчный рефлюкс) <cite>[cite: 108, 109]</cite>.",
+                list: [],
+                btnText: "Ушёл в спящий режим 💤"
+            }
         ];
 
-        const app = {
-            state: {
-                streak: 0,
-                lastVisit: null,
-                history: [], // Формат: "YYYY-MM-DD"
-                tasks: [],
-                progress: 0
-            },
+        let currentStep = parseInt(localStorage.getItem('recoveryQuestStep')) || 0;
+        const container = document.getElementById('quest-container');
+        const doneState = document.getElementById('done-state');
+        const progressBar = document.getElementById('progress');
+        const statusText = document.getElementById('status');
 
-            start() {
-                this.loadState();
-                this.checkDate();
-                this.render();
-            },
-
-            loadState() {
-                const data = localStorage.getItem('systemState_v2');
-                if (data) {
-                    this.state = JSON.parse(data);
-                } else {
-                    // Первая загрузка - создаем чистую историю на 28 дней назад
-                    this.state.history = [];
-                }
-            },
-
-            saveState() {
-                localStorage.setItem('systemState_v2', JSON.stringify(this.state));
-            },
-
-            getToday() {
-                const d = new Date();
-                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            },
-
-            getMidnight(d) { 
-                return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); 
-            },
-
-            checkDate() {
-                const today = this.getToday();
-                if (this.state.lastVisit !== today) {
-                    // Проверка пропусков
-                    if (this.state.lastVisit) {
-                        const lastTime = this.getMidnight(new Date(this.state.lastVisit));
-                        const todayTime = this.getMidnight(new Date());
-                        const diff = Math.floor((todayTime - lastTime) / (1000 * 60 * 60 * 24));
-                        
-                        if (diff > 1) {
-                            this.state.streak = 0; // Сброс серии
-                        }
-                    }
-
-                    // Генерация новых задач
-                    const shuffled = [...TASKS].sort(() => 0.5 - Math.random());
-                    this.state.tasks = shuffled.slice(0, 3).map(t => ({ text: t, done: false }));
-                    this.state.progress = 0;
-                    this.saveState();
-                }
-            },
-
-            initDay() {
-                if (this.state.progress > 0 || this.state.lastVisit === this.getToday()) return;
-
-                this.haptic(50);
-                const today = this.getToday();
-                
-                this.state.streak += 1;
-                this.state.lastVisit = today;
-                this.state.progress = 25; // 25% за вход
-                
-                // Обновляем историю
-                this.state.history.push(today);
-                if (this.state.history.length > 28) this.state.history.shift();
-
-                this.saveState();
-                this.render();
-            },
-
-            toggleTask(index) {
-                if (this.state.progress === 0) return; // Нельзя кликать до запуска
-
-                this.haptic(20);
-                const task = this.state.tasks[index];
-                task.done = !task.done;
-
-                // Пересчет прогресса
-                let p = 25;
-                let doneCount = 0;
-                this.state.tasks.forEach(t => { if(t.done) { p += 25; doneCount++; } });
-                this.state.progress = p;
-
-                this.saveState();
-                this.renderTasks();
-                this.updateUIStatus();
-            },
-
-            haptic(ms) {
-                if (navigator.vibrate) navigator.vibrate(ms);
-            },
-
-            render() {
-                // Уровень
-                const days = Math.floor((this.getMidnight(new Date()) - this.getMidnight(DOB)) / (1000 * 60 * 60 * 24));
-                document.getElementById('levelNum').textContent = days;
-
-                // Кнопка
-                const btn = document.getElementById('initBtn');
-                if (this.state.progress > 0) {
-                    btn.textContent = "Система активна";
-                    btn.classList.add('active');
-                } else {
-                    btn.textContent = "Запустить день";
-                    btn.classList.remove('active');
-                }
-
-                // Серия
-                document.getElementById('streakCount').textContent = `Серия: ${this.state.streak}`;
-
-                this.renderTasks();
-                this.renderMatrix();
-                this.updateUIStatus();
-            },
-
-            renderTasks() {
-                const list = document.getElementById('questList');
-                list.innerHTML = '';
-                
-                this.state.tasks.forEach((t, i) => {
-                    const el = document.createElement('div');
-                    el.className = `quest-item ${t.done ? 'done' : ''}`;
-                    el.onclick = () => this.toggleTask(i);
-                    el.innerHTML = `
-                        <div class="circle-check">
-                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <span class="quest-text">${t.text}</span>
-                    `;
-                    list.appendChild(el);
-                });
-
-                document.getElementById('progressFill').style.width = `${this.state.progress}%`;
-            },
-
-            renderMatrix() {
-                const grid = document.getElementById('matrixGrid');
-                grid.innerHTML = '';
-                
-                const todayTime = this.getMidnight(new Date());
-                
-                // Рендерим 28 дней (4 недели)
-                for (let i = 27; i >= 0; i--) {
-                    const d = new Date(todayTime - (i * 24 * 60 * 60 * 1000));
-                    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                    
-                    const dot = document.createElement('div');
-                    dot.className = 'dot';
-                    
-                    if (this.state.history.includes(dateStr)) {
-                        dot.classList.add('filled');
-                    }
-                    grid.appendChild(dot);
-                }
-            },
-
-            updateUIStatus() {
-                const statusEl = document.getElementById('systemStatus');
-                const aura = document.getElementById('aura');
-
-                if (this.state.progress === 0) {
-                    statusEl.textContent = "Ожидание инициализации...";
-                    aura.classList.remove('completed');
-                } else if (this.state.progress < 100) {
-                    statusEl.textContent = `В процессе. Выполнено: ${this.state.progress}%`;
-                    aura.classList.remove('completed');
-                } else {
-                    statusEl.textContent = "Цикл завершен. Идеальный день.";
-                    aura.classList.add('completed');
-                }
+        function renderStep() {
+            if (currentStep >= questData.length) {
+                container.style.display = 'none';
+                doneState.style.display = 'flex';
+                updateProgress();
+                return;
             }
-        };
 
-        app.start();
+            container.style.display = 'block';
+            doneState.style.display = 'none';
+            const data = questData[currentStep];
+            
+            let listHTML = '';
+            if (data.list.length > 0) {
+                listHTML = `<ul class="food-list">
+                    ${data.list.map(item => `<li>${item}</li>`).join('')}
+                </ul>`;
+            }
 
+            container.innerHTML = `
+                <div class="card" id="current-card">
+                    <div class="step-time">${data.time}</div>
+                    <h2 class="step-title">${data.title}</h2>
+                    <p class="step-desc">${data.desc}</p>
+                    ${listHTML}
+                    <button class="btn" onclick="nextStep()">${data.btnText}</button>
+                </div>
+            `;
+            updateProgress();
+        }
+
+        function nextStep() {
+            currentStep++;
+            localStorage.setItem('recoveryQuestStep', currentStep);
+            
+            // Анимация ухода старой карточки
+            const card = document.getElementById('current-card');
+            if(card) {
+                card.style.transform = 'scale(0.95)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    renderStep();
+                }, 200);
+            } else {
+                renderStep();
+            }
+        }
+
+        function resetQuest() {
+            currentStep = 0;
+            localStorage.setItem('recoveryQuestStep', 0);
+            renderStep();
+        }
+
+        function updateProgress() {
+            const total = questData.length;
+            const percent = (currentStep / total) * 100;
+            progressBar.style.width = percent + '%';
+            statusText.innerText = `Шаг ${currentStep} / ${total}`;
+        }
+
+        // Init
+        renderStep();
     </script>
 </body>
 </html>
